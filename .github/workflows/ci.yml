@@ -1,0 +1,37 @@
+name: Bare-metal CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    env:
+      ARM_VER: 13.2.rel1
+      ARM_TAR: arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
+      ARM_URL: https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache ARM toolchain
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.tool_cache }}/arm-gnu-toolchain-${{ env.ARM_VER }}
+          key: arm-gnu-${{ env.ARM_VER }}-linux-x64
+
+      - name: Setup ARM toolchain
+        run: |
+          TOOLDIR="$RUNNER_TOOL_CACHE/arm-gnu-toolchain-${ARM_VER}"
+          mkdir -p "$TOOLDIR"
+          if [ ! -x "$TOOLDIR/bin/arm-none-eabi-gcc" ]; then
+            curl -L -o /tmp/${ARM_TAR} ${ARM_URL}
+            tar -C "$TOOLDIR" --strip-components=1 -xf /tmp/${ARM_TAR}
+          fi
+          echo "$TOOLDIR/bin" >> "$GITHUB_PATH"
+
+      - name: Build
+        run: make
+
+      - name: Run in Renode
+        run: make ci-run
