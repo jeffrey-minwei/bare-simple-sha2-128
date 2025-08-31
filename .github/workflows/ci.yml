@@ -31,7 +31,15 @@ jobs:
           echo "$TOOLDIR/bin" >> "$GITHUB_PATH"
 
       - name: Build
-        run: make
+        run: |
+          set -e
+          make
+  
+      - name: Show sign.map
+        shell: bash
+        run: |
+          set -e
+          head -n 300 sign.map
 
       - name: Run in Renode
         run: make ci-run

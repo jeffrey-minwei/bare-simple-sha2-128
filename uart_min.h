@@ -2,6 +2,7 @@
 #define UART_MIN_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 /* ==== UARTE0 base ==== */
 #define NRF_UARTE0_BASE       0x40002000UL
@@ -37,9 +38,14 @@
 /* Baud (115200) */
 #define UARTE_BAUDRATE_115200 0x01D7E000UL
 
-/* DK 預設 VCOM 腳位（P0.06 TX, P0.08 RX），Renode 也不在意實際腳位，但仍設一下 */
+/* DK 預設 VCOM 腳位 (P0.06 TX, P0.08 RX) */
 #define UART_TX_PIN           6
 #define UART_RX_PIN           8
 
-#endif 
+void uarte0_init(void);
 
+void uarte0_tx(const void *buf, uint32_t len);
+
+void uarte0_hex(const char *label, const uint8_t *data, size_t len);
+
+#endif 
