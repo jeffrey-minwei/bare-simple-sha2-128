@@ -8,13 +8,10 @@
 // - You supply RNG via function pointer; nothing global, no weak stubs.
 
 #include "keygen.h"
+#include "sha256.h"
+
 #include <stdint.h>
 #include <string.h>
-
-static void sha256(const uint8_t *msg, size_t mlen, uint8_t out32[32])
-{
-    // TODO
-}
 
 static void h_pair_trunc(uint8_t out[SPX_N],
                          const uint8_t l[SPX_N],
