@@ -10,7 +10,9 @@
 - 後續的 debug、測試與整合皆由人工完成，目前簽章及驗章功能仍在開發中。
 - 僅以 simple、SHA2 為主，原因是 SHA2 便於之後整合 CryptoCell-310、CryptoCell-312，而且 FIPS 205 並未 approved robust，僅 approved simple
 
-<img width="836" height="406" alt="image" src="https://github.com/user-attachments/assets/ce1eeaeb-4526-44f4-a6b8-f6564f5a6690" />
+<img width="998" height="160" alt="image" src="https://github.com/user-attachments/assets/4e386d49-1cd1-48a2-b022-4170cab53c46" />
+
 
 
 本專案以 Apache License 2.0 授權公開。
+
