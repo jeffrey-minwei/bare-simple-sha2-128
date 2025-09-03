@@ -3,6 +3,13 @@
 [![CI (Bare-metal nRF52840 CI)](https://github.com/jeffrey-minwei/bare-simple-sha2-128/actions/workflows/ci.yml/badge.svg)](https://github.com/jeffrey-minwei/bare-simple-sha2-128/actions/workflows/ci.yml)
 
 
+雖然本專案的原始碼是依照 [FIPS 205](https://csrc.nist.gov/pubs/fips/205/final) 的 algorithms 撰寫，
+但在實作細節上，大量參考了 [SPHINCS+ 參考實作](https://github.com/sphincs/sphincsplus/)。
+
+This implementation follows the algorithms described in **[FIPS 205](https://csrc.nist.gov/pubs/fips/205/final)**, while heavily inspired by the [The SPHINCS+ reference code](https://github.com/sphincs/sphincsplus/).
+
+<hr>
+
 本專案實作了 SLH-DSA 簽章演算法，遵循  [Stateless Hash-Based Digital Signature Standard (FIPS 205)](https://csrc.nist.gov/pubs/fips/205/final) 規範。
 
 - 約 98% 的原始程式碼最初由 ChatGPT 生成。
@@ -15,4 +22,5 @@
 
 
 本專案以 Apache License 2.0 授權公開。
+
 
