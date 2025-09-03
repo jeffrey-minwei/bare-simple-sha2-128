@@ -1,6 +1,21 @@
 #include "common.h"
+#include "uart_min.h"
 
 #include <stddef.h>
+
+void test_common()
+{
+    unsigned char S[4];
+    unsigned int len = 1;
+    toByte((unsigned long long)len, 4, S);
+    uarte0_hex("S", S, sizeof(S));
+
+
+    ADRS adrs;
+    unsigned long long i = 1;
+    set_layer_addr(adrs, len);
+    set_tree_height(adrs, i);
+}
 
 /*
 
@@ -54,7 +69,7 @@ Output: Byte string of length n containing binary representation of x in big-end
 /**
  * Based on the SPHINCS+ reference implementation: https://github.com/sphincs/sphincsplus/blob/master/ref/utils.c#L12
  */
-void toByte(const unsigned long long x, const unsigned int n, unsigned long long *pS)
+void toByte(const unsigned long long x, const unsigned int n, unsigned char *pS)
 {
     if (pS == NULL)
     {
@@ -65,7 +80,7 @@ void toByte(const unsigned long long x, const unsigned int n, unsigned long long
 
     for (unsigned int i = 0; i < n; ++i) {
         // 𝑆[n - 1 - i] ← total mod 256
-        pS[n - 1 - i] = total & 0xff;
+        pS[n - 1 - i] = (unsigned char)total & 0xff;
 
         // total ← total >> 8       ▷ least significant 8 bits of 𝑡𝑜𝑡𝑎𝑙
         total = total >> 8;
@@ -130,4 +145,42 @@ void H(const uint8_t *p_pk_seed, const uint32_t *addr, const uint8_t *p_M_2, uns
     }
 
     // TODO
+}
+
+
+/**
+ * See https://github.com/sphincs/sphincsplus/blob/master/ref/address.c#L11
+ *
+ * ADRS = concat(toByte(l, 4), ADRS[4:32])
+ * ADRS[4:32] means ADRS[4, 5, ..., 31]
+ */
+void set_layer_addr(ADRS adrs, unsigned int layer)
+{
+    if (adrs != NULL)
+    {
+        unsigned char S[4];
+        toByte((unsigned long long)layer, 4, S);
+
+        // See page 22, Figure 2. Address (ADRS), https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+        // ADRS[0] is layer address, which length is 4 bytes
+        ((unsigned char*)adrs)[0] = S;
+    }
+}
+
+/**
+ * See https://github.com/sphincs/sphincsplus/blob/master/ref/address.c#L92
+ * See page 24, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ */
+void set_tree_height(ADRS adrs, unsigned long long i)
+{
+    if (adrs != NULL)
+    {
+        unsigned char S[4];
+        toByte((unsigned long long)i, 4, S);
+    
+        // ...
+        // ADRS[6] is ADRS[24:28]
+        // ADRS[7] is ADRS[28:32]
+        ((unsigned char*)adrs)[6] = S;
+    }
 }

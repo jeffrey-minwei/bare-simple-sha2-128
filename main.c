@@ -1,6 +1,7 @@
 // main.c - nRF52840 UARTE0 Hello World (115200/8N1, no HWFC, EasyDMA)
 
 #include "uart_min.h"
+#include "common.h"
 #include "keygen.h"
 #include "slh_dsa_sign.h"
 
@@ -61,6 +62,8 @@ int main(void)
     uarte0_init();
     // test uart
     uarte0_tx(msg, sizeof(msg) - 1);
+
+    test_common();
 
     uint8_t sk[SPX_SK_BYTES];
     uint8_t pk[SPX_PK_BYTES];
