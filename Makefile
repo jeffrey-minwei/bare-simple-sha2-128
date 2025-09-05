@@ -2,7 +2,7 @@ CC := arm-none-eabi-gcc
 CFLAGS := -mcpu=cortex-m4 -mthumb -O2 -ffreestanding -Wall -Wextra -Wl,--gc-sections -specs=nano.specs -specs=nosys.specs 
 
 ELF := sign.elf
-SRCS := startup.c main.c keygen.c sha256.c uart_min.c slh_dsa_sign.c base_2b.c common.c 
+SRCS := startup.c main.c keygen.c sha256.c uart_min.c slh_dsa_sign.c base_2b.c common.c fors_sk_gen.c
 LDS  := linker.ld
 TEST_SRCS := tests/test_keygen.c startup.c keygen.c
 
@@ -32,11 +32,14 @@ sha256.o: sha256.c
 base_2b.o: base_2b.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
+fors_sk_gen.o: fors_sk_gen.c
+	$(CC) $(CFLAGS) -c $^ -o $@
+
 slh_dsa_sign.o: slh_dsa_sign.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 all: $(ELF) 
-$(ELF): $(SRCS) $(LDS) common.o base_2b.o keygen.o sha256.o slh_dsa_sign.o
+$(ELF): $(SRCS) $(LDS) common.o base_2b.o keygen.o sha256.o slh_dsa_sign.o fors_sk_gen.o
 	$(CC) $(CFLAGS) -T $(LDS) $(SRCS) -Wl,-Map,sign.map -v -Wl,--start-group -lc -lnosys -lgcc -Wl,--end-group -o $@
 
 clean:
