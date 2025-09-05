@@ -25,6 +25,33 @@ void test_common();
  */
 typedef uint32_t ADRS[8];   // ADRS  = 8 個 uint32_t
 
+/**
+ *   See page 45 of https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ *
+ *   Compressed ADRS is 22 bytes, which is 22 個 uint8_t
+ *     -----------------
+ *     | layer address |   1 byte
+ *     |---------------| 
+ *     |               |
+ *     | tree address  |   8 bytes
+ *     |               |
+ *     |---------------|
+ *     |     type      |   1 byte
+ *     |---------------|
+ *     |               |
+ *     |               |  12 bytes
+ *     |               |
+ *     -----------------
+ */
+typedef uint8_t ADRSc[22];   // Compressed ADRS is 22 bytes
+
+void set_layer_addr_c(ADRSc adrs, unsigned int layer);
+void set_tree_height_c(ADRSc adrs, unsigned long long i);
+void set_type_and_clear_c(ADRSc adrs, unsigned int Y);
+void set_key_pair_addr_c(ADRSc adrs, unsigned int i);
+void set_tree_index_c(ADRSc adrs, unsigned int i);
+
+
 unsigned long long toInt(const unsigned char *pX, unsigned int n);
 
 void toByte(const unsigned long long x, const unsigned int n, unsigned char *pS);
@@ -55,5 +82,11 @@ void H(const uint8_t *p_pk_seed, const uint32_t *addr, const uint8_t *p_M_2, uns
 void set_layer_addr(ADRS adrs, unsigned int layer);
 
 void set_tree_height(ADRS adrs, unsigned long long i);
+
+void set_type_and_clear(ADRS adrs, unsigned int Y);
+
+void set_key_pair_addr(ADRS adrs, unsigned int i);
+
+void set_tree_index(ADRS adrs, unsigned int i);
 
 #endif

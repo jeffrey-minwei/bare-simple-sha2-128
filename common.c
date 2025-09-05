@@ -2,19 +2,43 @@
 #include "uart_min.h"
 
 #include <stddef.h>
+#include <string.h>
 
 void test_common()
 {
     unsigned char S[4];
     unsigned int len = 1;
     toByte((unsigned long long)len, 4, S);
-    uarte0_hex("S", S, sizeof(S));
+    uarte0_hex("S", S, sizeof(S) / sizeof(S[0]));
 
+    unsigned int layer = 1;
+    ADRSc adrs_c;
+    set_layer_addr_c(adrs_c, layer);
+
+    unsigned long long height = 2;
+    set_tree_height_c(adrs_c, height);
+
+    unsigned int type = 4;  // FORS_ROOTS)
+    set_type_and_clear_c(adrs_c, type);
+
+    unsigned int idx_keypair = 2;
+    set_key_pair_addr_c(adrs_c, idx_keypair);
+
+    unsigned int index_ADRSc = 3;
+    set_tree_index_c(adrs_c, index_ADRSc);
 
     ADRS adrs;
     unsigned long long i = 1;
     set_layer_addr(adrs, len);
     set_tree_height(adrs, i);
+
+    set_type_and_clear(adrs, type);
+
+    unsigned int idx = 2;
+    set_key_pair_addr(adrs, idx);
+
+    unsigned int index = 3;
+    set_tree_index(adrs, index);
 }
 
 /*
@@ -110,6 +134,7 @@ H(PK.seed, ADRS, M_2) = Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS
 void prf(const uint8_t *p_pk_seed, const uint8_t *p_sk_seed, const uint32_t *addr, unsigned char *p_out)
 {
     // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
+    
     // p_pk_seed is a pointer to the first element of an array of length at least 16.
     // p_sk_seed is a pointer to the first element of an array of length at least 16.
 
@@ -118,7 +143,24 @@ void prf(const uint8_t *p_pk_seed, const uint8_t *p_sk_seed, const uint32_t *add
         return;
     }
 
+    //
+    // PRF(PK.seed, SK.seed, ADRS) = Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed))
+    //
+
+    // toByte(0, 64 − n)
+    unsigned char S[48];   // n: 16, 64 - n = 48
+    toByte(0, 48, S);
+
+    // PK.seed ∥ toByte(0, 64 − n)
+    unsigned char combined[64];
+
+    // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
+    unsigned int seed_len = 16;
+    memcpy(combined, p_pk_seed, seed_len);
+    memcpy(combined + seed_len, S, 48);
+
     // TODO
+    
 }
 
 /**
@@ -130,6 +172,18 @@ void F(const uint8_t *p_pk_seed, const uint32_t *addr, const uint8_t *p_M_1, uns
     {
         return;
     }
+
+    // toByte(0, 64 − n)
+    unsigned char S[48];   // n: 16, 64 - n = 48
+    toByte(0, 48, S);
+
+    // PK.seed ∥ toByte(0, 64 − n)
+    unsigned char combined[64];
+
+    // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
+    unsigned int seed_len = 16;
+    memcpy(combined, p_pk_seed, seed_len);
+    memcpy(combined + seed_len, S, 48);
 
     // TODO
 }
@@ -144,9 +198,93 @@ void H(const uint8_t *p_pk_seed, const uint32_t *addr, const uint8_t *p_M_2, uns
         return;
     }
 
+    // toByte(0, 64 − n)
+    unsigned char S[48];   // n: 16, 64 - n = 48
+    toByte(0, 48, S);
+
+    // PK.seed ∥ toByte(0, 64 − n)
+    unsigned char combined[64];
+
+    // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
+    unsigned int seed_len = 16;
+    memcpy(combined, p_pk_seed, seed_len);
+    memcpy(combined + seed_len, S, 48);
+
     // TODO
 }
 
+// start of ADRSc member function
+
+void set_layer_addr_c(ADRSc adrs, unsigned int layer)
+{
+    if (adrs != NULL)
+    {
+        unsigned char S[1];
+        toByte((unsigned long long)layer, 1, S);
+
+        adrs[0] = S[0];
+    }
+}
+
+void set_tree_height_c(ADRSc adrs, unsigned long long i)
+{
+    if (adrs != NULL)
+    {
+        unsigned char S[4];
+        toByte((unsigned long long)i, 4, S);
+
+        adrs[14] = S[0];
+        adrs[15] = S[1];
+        adrs[16] = S[2];
+        adrs[17] = S[3];
+    }
+}
+
+void set_type_and_clear_c(ADRSc adrs, unsigned int Y)
+{
+    if (adrs != NULL)
+    {
+        unsigned char S[1];
+        toByte((unsigned long long)Y, 1, S);
+
+        // ADRS[0 ∶ 9] ∥ toByte(Y, 1) ∥ toByte(0, 12)
+        adrs[9] = S[0];
+
+        // toByte(0, 12)
+        unsigned char zero[12];
+        toByte(0, 12, zero);
+
+        // ADRS[0 ∶ 9] ∥ toByte(Y, 1) ∥ toByte(0, 12)
+        for(int i = 10; i <= 21; ++i)
+        {
+            adrs[i] = zero[i - 10];  // zero[0] ~ zero[11]
+        }
+    }
+}
+
+void set_key_pair_addr_c(ADRSc adrs, unsigned int i)
+{
+    if (adrs != NULL)
+    {
+        // TODO
+    }
+}
+
+void set_tree_index_c(ADRSc adrs, unsigned int i)
+{
+    if (adrs != NULL)
+    {
+        unsigned char S[4];
+        toByte((unsigned long long)i, 4, S);
+
+        adrs[18] = S[0];
+        adrs[19] = S[1];
+        adrs[20] = S[2];
+        adrs[21] = S[3];
+    }
+}
+
+// end of ADRSc member function
 
 /**
  * See https://github.com/sphincs/sphincsplus/blob/master/ref/address.c#L11
@@ -182,5 +320,55 @@ void set_tree_height(ADRS adrs, unsigned long long i)
         // ADRS[6] is ADRS[24:28]
         // ADRS[7] is ADRS[28:32]
         ((unsigned char*)adrs)[6] = S;
+    }
+}
+
+/**
+ * See page 24, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ */
+void set_type_and_clear(ADRS adrs, unsigned int Y)
+{
+    if (adrs != NULL)
+    {
+        unsigned char S[4];
+        toByte((unsigned long long)Y, 4, S);
+
+        // ADRS[4] is ADRS[16:20], ADRS[16, 17, 18, 19]
+        ((unsigned char*)adrs)[4] = S;
+
+        toByte(0, 4, S);
+        ((unsigned char*)adrs)[5] = S;
+        ((unsigned char*)adrs)[6] = S;
+        ((unsigned char*)adrs)[7] = S;
+    }
+}
+
+/**
+ * See page 24, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ */
+void set_key_pair_addr(ADRS adrs, unsigned int i)
+{    
+    if (adrs != NULL)
+    {
+        unsigned char S[4];
+        toByte((unsigned long long)i, 4, S);
+
+        // ADRS[5] is ADRS[20:24], ADRS[20, 21, 22, 23]
+        ((unsigned char*)adrs)[5] = S;
+    }
+}
+
+/**
+ * See page 24, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ */
+void set_tree_index(ADRS adrs, unsigned int i)
+{
+    if (adrs != NULL)
+    {
+        unsigned char S[4];
+        toByte((unsigned long long)i, 4, S);
+
+        // ADRS[7] is ADRS[28:32], ADRS[28, 29, 30, 31]
+        ((unsigned char*)adrs)[7] = S;
     }
 }
