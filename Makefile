@@ -1,24 +1,51 @@
-CC := arm-none-eabi-gcc
-CFLAGS := -mcpu=cortex-m4 -mthumb -O2 -ffreestanding -Wall -Wextra -Wl,--gc-sections -specs=nano.specs -specs=nosys.specs 
+.DEFAULT_GOAL := all
+.PHONY: all
 
-ELF := sign.elf
-SRCS := startup.c main.c keygen.c sha256.c uart_min.c slh_dsa_sign.c base_2b.c common.c fors_sk_gen.c
-LDS  := linker.ld
-TEST_SRCS := tests/test_keygen.c startup.c keygen.c
+# clean help ci-run 以外一律要指定 TARGET
+ifeq (,$(filter clean help ci-run%,$(MAKECMDGOALS)))
+ifeq ($(strip $(TARGET)),)
+$(error TARGET is required, ex. make TARGET=nrf52840)
+endif
+endif
+
+OBJS := common.o base_2b.o keygen.o sha256.o slh_dsa_sign.o fors_sign.o fors_sk_gen.o
+
+
+ifeq ($(TARGET),x86)
+  CC := gcc
+  CFLAGS := -O3 -std=c11 -Wall -Wextra -Wpedantic -ffunction-sections -fdata-sections
+  LDFLAGS := -Wl,--gc-sections -Wl,-Map,x86_sign.map
+  STARTUP :=                         # like platform/x86/startup.c
+  LDS  :=                            # like platform/x86/linker.ld
+  OBJCOPY := objcopy
+  SIZE := size
+  ELF := sign_x86.elf
+
+else ifeq ($(TARGET),nrf52840)
+  CC := arm-none-eabi-gcc
+  STARTUP := platforms/nrf52840/startup.c
+  LDS  := platforms/nrf52840/linker.ld
+  CFLAGS := -mcpu=cortex-m4 -mthumb -O2 -ffreestanding -Wall -Wextra  
+  LDFLAGS := -Wl,--gc-sections -specs=nano.specs -specs=nosys.specs -nostartfiles -lc -lnosys -lgcc -T $(LDS) -Wl,-Map,sign_nrf52840.map
+  ELF := sign_nrf52840.elf
+
+else ifeq ($(TARGET),nrf5340dk)
+  CC := arm-none-eabi-gcc
+  STARTUP := platforms/nrf5340dk/startup.c
+  LDS  := platforms/nrf5340dk/linker.ld
+  CFLAGS := -mcpu=cortex-m33 -mthumb -O2 -ffreestanding -Wall -Wextra  
+  LDFLAGS := -Wl,--gc-sections -specs=nano.specs -specs=nosys.specs -nostartfiles -lc -lnosys -lgcc -T $(LDS) -Wl,-Map,sign_nrf5340dk.map
+  ELF := sign_nrf5340dk.elf
+
+endif
+
+SRCS := $(STARTUP) main.c keygen.c sha256.c uart_min.c slh_dsa_sign.c base_2b.c common.c fors_sk_gen.c fors_sign.c
 
 # 用 digest 來完全鎖定版本
 RENODE_IMG = antmicro/renode@sha256:1a4879e047b22827205f4fb1d1e5474d5fdce17eb69f22726ab1afed479f5e22
 
 WORKDIR     ?= $(shell pwd)
 RESC        ?= run_sign.resc
-
-.PHONY: all clean run ci-run
-
-sign.elf: $(OBJS) $(LDS)
-	$(CC) $(CFLAGS) -T $(LDS) $(OBJS) \
-	-Wl,--gc-sections -Wl,-Map,sign.map \
-	-specs=nano.specs -specs=nosys.specs \
-	-lc -lnosys -lgcc -o $@
 
 common.o: common.c
 	$(CC) $(CFLAGS) -c $^ -o $@
@@ -38,11 +65,14 @@ fors_sk_gen.o: fors_sk_gen.c
 slh_dsa_sign.o: slh_dsa_sign.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
-all: $(ELF) 
-$(ELF): $(SRCS) $(LDS) common.o base_2b.o keygen.o sha256.o slh_dsa_sign.o fors_sk_gen.o
-	$(CC) $(CFLAGS) -T $(LDS) $(SRCS) -Wl,-Map,sign.map -v -Wl,--start-group -lc -lnosys -lgcc -Wl,--end-group -o $@
+all: sign.elf
+
+sign.elf:  $(LDS) $(OBJS)
+	@echo "==> start building with $(CC), output should be $(ELF)"
+	$(CC) $(CFLAGS) $(SRCS) -v -Wl,--start-group -Wl,--end-group $(LDFLAGS) -o $(ELF)
 
 clean:
+	rm -f *.o sign_*.elf sign.elf
 	rm -f $(ELF)
 
 # 本機（有裝 renode）

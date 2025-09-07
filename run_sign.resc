@@ -3,7 +3,7 @@ set ansi false
 mach create "nrf52840_sign"
 
 machine LoadPlatformDescription @platforms/cpus/nrf52840.repl
-sysbus LoadELF @sign.elf
+sysbus LoadELF @sign_nrf52840.elf
 
 showAnalyzer sysbus.uart0
 

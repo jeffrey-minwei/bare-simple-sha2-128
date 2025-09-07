@@ -30,16 +30,35 @@ jobs:
           fi
           echo "$TOOLDIR/bin" >> "$GITHUB_PATH"
 
-      - name: Build
+      - name: Build x86
         run: |
           set -e
-          make
-  
-      - name: Show sign.map
+          make clean
+          make TARGET=x86
+
+      - name: Build nrf52840
+        run: |
+          set -e
+          make clean
+          make TARGET=nrf52840  
+
+      - name: Show sign_nrf52840.map
         shell: bash
         run: |
           set -e
-          head -n 300 sign.map
+          head -n 300 sign_nrf52840.map
 
       - name: Run in Renode
-        run: make ci-run
+        run: make ci-run-nrf52840
+
+      - name: Build nRF5340 DK
+        run: |
+          set -e
+          make clean
+          make TARGET=nrf5340dk
+
+      - name: Show sign_nrf5340dk.map
+        shell: bash
+        run: |
+          set -e
+          head -n 300 sign_nrf5340dk.map
