@@ -62,6 +62,9 @@ base_2b.o: base_2b.c
 fors_sk_gen.o: fors_sk_gen.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
+fors_sign.o: fors_sign.c
+	$(CC) $(CFLAGS) -c $^ -o $@
+
 slh_dsa_sign.o: slh_dsa_sign.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
@@ -80,6 +83,6 @@ run: $(ELF) $(RESC)
 	renode -e 'include @$(RESC); sleep 2; q'
 
 # CI：用官方 renode 容器；CI 只呼叫這個 target
-ci-run: $(ELF) $(RESC)
+ci-run-nrf52840: $(ELF) $(RESC)
 	docker run --rm -v "$(WORKDIR):/w" $(RENODE_IMG) \
 	  sh -lc 'cd /w && renode --console --disable-xwt -e "set ansi false; include @$(RESC); sleep 2; q"' | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' 
