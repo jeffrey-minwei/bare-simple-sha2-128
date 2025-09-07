@@ -2,6 +2,7 @@
 
 #include "sha256.h"
 #include "slh_dsa_sign.h"
+#include "fors_sign.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -92,15 +93,6 @@ static void h_msg(uint8_t mhash[SPX_FORS_MSG_BYTES],
     *leaf_idx = leaf;
 }
 
-/* 你需要提供（或先放「假實作」跑通流程） */
-size_t fors_sign(uint8_t *sig_ptr,
-                 uint8_t fors_root[SPX_N],
-                 const uint8_t mhash[SPX_FORS_MSG_BYTES],
-                 const uint8_t sk_seed[SPX_N],
-                 const uint8_t pub_seed[SPX_N],
-                 uint64_t tree_idx,
-                 uint32_t leaf_idx);
-
 size_t wots_sign_and_auth(uint8_t *sig_ptr,
                           uint8_t next_root[SPX_N],
                           const uint8_t msgpk[SPX_N],
@@ -109,19 +101,6 @@ size_t wots_sign_and_auth(uint8_t *sig_ptr,
                           uint64_t tree_idx,
                           uint32_t leaf_idx,
                           unsigned subtree_height);
-
-// fake FORS：把 mhash 做一次 sha256 當成 fors_root；簽章長度回傳 0（先不產）
-size_t fors_sign(uint8_t *sig_ptr, uint8_t fors_root[SPX_N],
-                 const uint8_t mhash[SPX_FORS_MSG_BYTES],
-                 const uint8_t *sk_seed, const uint8_t *pub_seed,
-                 uint64_t tree_idx, uint32_t leaf_idx)
-{
-    uint8_t h[32];
-    sha256(mhash, SPX_FORS_MSG_BYTES, h);
-    memcpy(fors_root, h, SPX_N);
-    (void)sig_ptr; (void)sk_seed; (void)pub_seed; (void)tree_idx; (void)leaf_idx;
-    return 0; // 先不產簽章，為了打通流程
-}
 
 // fake WOTS+：對 node 做 sha256 當作 next_root；簽章/auth 一律長度 0
 size_t wots_sign_and_auth(uint8_t *sig_ptr, uint8_t next_root[SPX_N],
