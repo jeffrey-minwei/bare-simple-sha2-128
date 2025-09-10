@@ -13,10 +13,11 @@ OBJS := common.o base_2b.o keygen.o sha256.o slh_dsa_sign.o fors_sign.o fors_sk_
 
 ifeq ($(TARGET),x86)
   CC := gcc
-  CFLAGS := -O3 -std=c11 -Wall -Wextra -Wpedantic -ffunction-sections -fdata-sections
+  CFLAGS := -O3 -std=c11 -Wall -Wextra -Wpedantic -ffunction-sections -fdata-sections -mrdrnd
   LDFLAGS := -Wl,--gc-sections -Wl,-Map,x86_sign.map
   STARTUP :=                         # like platform/x86/startup.c
   LDS  :=                            # like platform/x86/linker.ld
+  RAND_SRC := platforms/x86/rdrand.c
   OBJCOPY := objcopy
   SIZE := size
   ELF := sign_x86.elf
@@ -25,6 +26,7 @@ else ifeq ($(TARGET),nrf52840)
   CC := arm-none-eabi-gcc
   STARTUP := platforms/nrf52840/startup.c
   LDS  := platforms/nrf52840/linker.ld
+  RAND_SRC := platforms/nrf52840/rdrand.c
   CFLAGS := -mcpu=cortex-m4 -mthumb -O2 -ffreestanding -Wall -Wextra  
   LDFLAGS := -Wl,--gc-sections -specs=nano.specs -specs=nosys.specs -nostartfiles -lc -lnosys -lgcc -T $(LDS) -Wl,-Map,sign_nrf52840.map
   ELF := sign_nrf52840.elf
@@ -33,13 +35,14 @@ else ifeq ($(TARGET),nrf5340dk)
   CC := arm-none-eabi-gcc
   STARTUP := platforms/nrf5340dk/startup.c
   LDS  := platforms/nrf5340dk/linker.ld
+  RAND_SRC := platforms/nrf5340dk/rdrand.c
   CFLAGS := -mcpu=cortex-m33 -mthumb -O2 -ffreestanding -Wall -Wextra  
   LDFLAGS := -Wl,--gc-sections -specs=nano.specs -specs=nosys.specs -nostartfiles -lc -lnosys -lgcc -T $(LDS) -Wl,-Map,sign_nrf5340dk.map
   ELF := sign_nrf5340dk.elf
 
 endif
 
-SRCS := $(STARTUP) main.c keygen.c sha256.c uart_min.c slh_dsa_sign.c base_2b.c common.c fors_sk_gen.c fors_sign.c
+SRCS := $(STARTUP) $(RAND_SRC) main.c keygen.c sha256.c uart_min.c slh_dsa_sign.c base_2b.c common.c fors_sk_gen.c fors_sign.c
 
 # 用 digest 來完全鎖定版本
 RENODE_IMG = antmicro/renode@sha256:1a4879e047b22827205f4fb1d1e5474d5fdce17eb69f22726ab1afed479f5e22
