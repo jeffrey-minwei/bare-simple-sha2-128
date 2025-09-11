@@ -310,7 +310,7 @@ void set_tree_height(ADRS adrs, unsigned long long i)
         toByte((unsigned long long)i, 4, S);
     
         // ADRS[24:28]
-        memcpy(adrs + 24, S, 4);   // 24, 25, 26, 27
+        memcpy(((unsigned char *)adrs) + 24, S, 4);   // 24, 25, 26, 27
     }
 }
 
@@ -325,10 +325,10 @@ void set_type_and_clear(ADRS adrs, unsigned int Y)
         toByte((unsigned long long)Y, 4, S);
 
         // ADRS[16:20], ADRS[16, 17, 18, 19]
-        memcpy(adrs + 16, S, 4);   // 16, 17, 18, 19
+        memcpy(((unsigned char *)adrs) + 16, S, 4);   // 16, 17, 18, 19
 
         toByte(0, 12, S);
-        memcpy(adrs + 20, S, 12);  // 20, 21, ..., 31
+        memcpy(((unsigned char *)adrs) + 20, S, 12);  // 20, 21, ..., 31
     }
 }
 
@@ -343,7 +343,7 @@ void set_key_pair_addr(ADRS adrs, unsigned int i)
         toByte((unsigned long long)i, 4, S);
 
         // ADRS[20:24], ADRS[20, 21, 22, 23]
-        memcpy(adrs + 20, S, 4);     // 20, 21, 22, 23
+        memcpy(((unsigned char *)adrs) + 20, S, 4);     // 20, 21, 22, 23
     }
 }
 
@@ -358,7 +358,8 @@ void set_tree_index(ADRS adrs, unsigned int i)
         toByte((unsigned long long)i, 4, S);
 
         // ADRS[28:32], ADRS[28, 29, 30, 31]
-        memcpy(adrs + 28, S, 4);     // 28, 29, 30, 31
+        memcpy(((unsigned char *)adrs) + 28, S, 4);     // 28, 29, 30, 31
     }
 }
+
 
