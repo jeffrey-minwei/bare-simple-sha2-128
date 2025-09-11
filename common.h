@@ -85,7 +85,21 @@ void set_tree_height(ADRS adrs, unsigned long long i);
 
 void set_type_and_clear(ADRS adrs, unsigned int Y);
 
-void set_key_pair_addr(ADRS adrs, unsigned int i);
+/**
+ * See page 12,13,14, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ */
+void set_key_pair_addr(ADRS adrs, unsigned long long i);
+
+/**
+ * See page 12,14, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ */
+void set_chain_addr(ADRS adrs, unsigned long long i);
+
+/**
+ * See page 14, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ * ADRS = concat(ADRS[0 ∶ 28], toByte(i, 4))
+ */
+void set_hash_addr(ADRS adrs, unsigned long long i);
 
 void set_tree_index(ADRS adrs, unsigned int i);
 

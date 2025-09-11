@@ -34,8 +34,14 @@ void test_common()
 
     set_type_and_clear(adrs, type);
 
-    unsigned int idx = 2;
-    set_key_pair_addr(adrs, idx);
+    unsigned long long key_pair_addr = 2;
+    set_key_pair_addr(adrs, key_pair_addr);
+
+    unsigned long long chain_addr = 2;
+    set_chain_addr(adrs, chain_addr);
+
+    unsigned long long hash_addr = 20;
+    set_hash_addr(adrs, hash_addr);
 
     unsigned int index = 3;
     set_tree_index(adrs, index);
@@ -333,17 +339,48 @@ void set_type_and_clear(ADRS adrs, unsigned int Y)
 }
 
 /**
- * See page 24, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ * See page 12,13,14, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
  */
-void set_key_pair_addr(ADRS adrs, unsigned int i)
+void set_key_pair_addr(ADRS adrs, unsigned long long i)
 {    
     if (adrs != NULL)
     {
-        unsigned char S[4];
-        toByte((unsigned long long)i, 4, S);
+        unsigned char key_pair_addr[4];
+        toByte(i, 4, key_pair_addr);
 
         // ADRS[20:24], ADRS[20, 21, 22, 23]
-        memcpy(((unsigned char *)adrs) + 20, S, 4);     // 20, 21, 22, 23
+        memcpy(((unsigned char *)adrs) + 20, key_pair_addr, 4);  // 20, 21, 22, 23
+    }
+}
+
+/**
+ * See page 12,14, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ */
+void set_chain_addr(ADRS adrs, unsigned long long i)
+{
+    if (adrs != NULL)
+    {
+        unsigned char chain_addr[4];
+        toByte(i, 4, chain_addr);
+
+        // ADRS[24:28], ADRS[24, 25, 26, 27]
+        memcpy(((unsigned char *)adrs) + 24, chain_addr, 4);   // 24, 25, 26, 27
+    }
+}
+
+/**
+ * See page 14, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ * ADRS = concat(ADRS[0 ∶ 28], toByte(i, 4))
+ */
+void set_hash_addr(ADRS adrs, unsigned long long i)
+{
+    if (adrs != NULL)
+    {
+        unsigned char hash_addr[4];
+        toByte(i, 4, hash_addr);
+
+        // ADRS[28:32], ADRS[28, 29, 30, 31]
+        memcpy(((unsigned char *)adrs) + 28, hash_addr, 4);
     }
 }
 
@@ -361,5 +398,3 @@ void set_tree_index(ADRS adrs, unsigned int i)
         memcpy(((unsigned char *)adrs) + 28, S, 4);     // 28, 29, 30, 31
     }
 }
-
-
