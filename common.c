@@ -215,6 +215,14 @@ void H(const uint8_t *p_pk_seed, const uint32_t *addr, const uint8_t *p_M_2, uns
 
 // start of ADRSc member function
 
+void assign_bytes_c(const unsigned char *src, ADRSc adrs, unsigned int index, unsigned int len)
+{
+    for(unsigned int i = 0; i < len; ++i)
+    {
+        adrs[index++] = src[i];  // src[0], src[1], ..., src[len-1]
+    }
+}
+
 void set_layer_addr_c(ADRSc adrs, unsigned int layer)
 {
     if (adrs != NULL)
@@ -233,10 +241,8 @@ void set_tree_height_c(ADRSc adrs, unsigned long long i)
         unsigned char S[4];
         toByte((unsigned long long)i, 4, S);
 
-        adrs[14] = S[0];
-        adrs[15] = S[1];
-        adrs[16] = S[2];
-        adrs[17] = S[3];
+        // ADRS[14:18]
+        assign_bytes_c(S, adrs, 14, 4); // 14, 15, 16, 17
     }
 }
 
@@ -255,10 +261,7 @@ void set_type_and_clear_c(ADRSc adrs, unsigned int Y)
         toByte(0, 12, zero);
 
         // ADRS[0 ∶ 9] ∥ toByte(Y, 1) ∥ toByte(0, 12)
-        for(int i = 10; i <= 21; ++i)
-        {
-            adrs[i] = zero[i - 10];  // zero[0] ~ zero[11]
-        }
+        assign_bytes_c(zero, adrs, 10, 12);
     }
 }
 
@@ -277,14 +280,21 @@ void set_tree_index_c(ADRSc adrs, unsigned int i)
         unsigned char S[4];
         toByte((unsigned long long)i, 4, S);
 
-        adrs[18] = S[0];
-        adrs[19] = S[1];
-        adrs[20] = S[2];
-        adrs[21] = S[3];
+        // ADRS[18:22]
+        assign_bytes_c(S, adrs, 18, 4); // 18, 19, 20, 21
     }
 }
 
 // end of ADRSc member function
+
+
+void assign_bytes(const unsigned char *src, ADRS adrs, unsigned int index, unsigned int len)
+{
+    for(unsigned int i = 0; i < len; ++i)
+    {
+        ((unsigned char*)adrs)[index++] = src[i];  // src[0], src[1], ..., src[len-1]
+    }
+}
 
 /**
  * See https://github.com/sphincs/sphincsplus/blob/master/ref/address.c#L11
@@ -300,8 +310,8 @@ void set_layer_addr(ADRS adrs, unsigned int layer)
         toByte((unsigned long long)layer, 4, S);
 
         // See page 22, Figure 2. Address (ADRS), https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
-        // ADRS[0] is layer address, which length is 4 bytes
-        ((unsigned char*)adrs)[0] = S;
+        // ADRS[0:4] is layer address, ADRS[0,1,2,3]
+        assign_bytes(S, adrs, 0, 4);
     }
 }
 
@@ -316,10 +326,8 @@ void set_tree_height(ADRS adrs, unsigned long long i)
         unsigned char S[4];
         toByte((unsigned long long)i, 4, S);
     
-        // ...
-        // ADRS[6] is ADRS[24:28]
-        // ADRS[7] is ADRS[28:32]
-        ((unsigned char*)adrs)[6] = S;
+        // ADRS[24:28]
+        assign_bytes(S, adrs, 24, 4); // 24, 25, 26, 27
     }
 }
 
@@ -333,13 +341,11 @@ void set_type_and_clear(ADRS adrs, unsigned int Y)
         unsigned char S[4];
         toByte((unsigned long long)Y, 4, S);
 
-        // ADRS[4] is ADRS[16:20], ADRS[16, 17, 18, 19]
-        ((unsigned char*)adrs)[4] = S;
+        // ADRS[16:20], ADRS[16, 17, 18, 19]
+        assign_bytes(S, adrs, 16, 4); // 16, 17, 18, 19
 
-        toByte(0, 4, S);
-        ((unsigned char*)adrs)[5] = S;
-        ((unsigned char*)adrs)[6] = S;
-        ((unsigned char*)adrs)[7] = S;
+        toByte(0, 12, S);
+        assign_bytes(S, adrs, 20, 12); // 20, 21, ..., 31
     }
 }
 
@@ -353,8 +359,8 @@ void set_key_pair_addr(ADRS adrs, unsigned int i)
         unsigned char S[4];
         toByte((unsigned long long)i, 4, S);
 
-        // ADRS[5] is ADRS[20:24], ADRS[20, 21, 22, 23]
-        ((unsigned char*)adrs)[5] = S;
+        // ADRS[20:24], ADRS[20, 21, 22, 23]
+        assign_bytes(S, adrs, 20, 4);   // 20, 21, 22, 23
     }
 }
 
@@ -368,7 +374,7 @@ void set_tree_index(ADRS adrs, unsigned int i)
         unsigned char S[4];
         toByte((unsigned long long)i, 4, S);
 
-        // ADRS[7] is ADRS[28:32], ADRS[28, 29, 30, 31]
-        ((unsigned char*)adrs)[7] = S;
+        // ADRS[28:32], ADRS[28, 29, 30, 31]
+        assign_bytes(S, adrs, 28, 4);   // 28, 29, 30, 31
     }
 }
