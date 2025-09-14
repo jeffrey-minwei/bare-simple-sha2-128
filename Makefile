@@ -8,7 +8,7 @@ $(error TARGET is required, ex. make TARGET=nrf52840)
 endif
 endif
 
-OBJS := common.o base_2b.o keygen.o sha256.o slh_dsa_sign.o fors_sign.o fors_sk_gen.o
+OBJS := addr_compressed.o common.o base_2b.o keygen.o sha256.o slh_dsa_sign.o fors_sign.o fors_sk_gen.o
 
 
 ifeq ($(TARGET),x86)
@@ -42,7 +42,7 @@ else ifeq ($(TARGET),nrf5340dk)
 
 endif
 
-SRCS := $(STARTUP) $(RAND_SRC) main.c keygen.c sha256.c uart_min.c slh_dsa_sign.c base_2b.c common.c fors_sk_gen.c fors_sign.c
+SRCS := $(STARTUP) $(RAND_SRC) main.c keygen.c sha256.c uart_min.c slh_dsa_sign.c base_2b.c addr_compressed.c common.c fors_sk_gen.c fors_sign.c
 
 # 用 digest 來完全鎖定版本
 RENODE_IMG = antmicro/renode@sha256:1a4879e047b22827205f4fb1d1e5474d5fdce17eb69f22726ab1afed479f5e22
@@ -51,6 +51,9 @@ WORKDIR     ?= $(shell pwd)
 RESC        ?= run_sign.resc
 
 common.o: common.c
+	$(CC) $(CFLAGS) -c $^ -o $@
+
+addr_compressed.o: addr_compressed.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 keygen.o: keygen.c

@@ -11,22 +11,6 @@ void test_common()
     toByte((unsigned long long)len, 4, S);
     uarte0_hex("S", S, sizeof(S) / sizeof(S[0]));
 
-    unsigned int layer = 1;
-    ADRSc adrs_c;
-    set_layer_addr_c(adrs_c, layer);
-
-    unsigned long long height = 2;
-    set_tree_height_c(adrs_c, height);
-
-    unsigned int type = 4;  // FORS_ROOTS)
-    set_type_and_clear_c(adrs_c, type);
-
-    unsigned int idx_keypair = 2;
-    set_key_pair_addr_c(adrs_c, idx_keypair);
-
-    unsigned int index_ADRSc = 3;
-    set_tree_index_c(adrs_c, index_ADRSc);
-
     ADRS adrs;
     unsigned long long i = 1;
     set_layer_addr(adrs, len);
@@ -218,72 +202,6 @@ void H(const uint8_t *p_pk_seed, const uint32_t *addr, const uint8_t *p_M_2, uns
 
     // TODO
 }
-
-// start of ADRSc member function
-
-void set_layer_addr_c(ADRSc adrs, unsigned int layer)
-{
-    if (adrs != NULL)
-    {
-        unsigned char S[1];
-        toByte((unsigned long long)layer, 1, S);
-
-        adrs[0] = S[0];
-    }
-}
-
-void set_tree_height_c(ADRSc adrs, unsigned long long i)
-{
-    if (adrs != NULL)
-    {
-        unsigned char S[4];
-        toByte((unsigned long long)i, 4, S);
-
-        // ADRS[14:18]
-        memcpy(adrs + 14, S, 4); // 14, 15, 16, 17
-    }
-}
-
-void set_type_and_clear_c(ADRSc adrs, unsigned int Y)
-{
-    if (adrs != NULL)
-    {
-        unsigned char S[1];
-        toByte((unsigned long long)Y, 1, S);
-
-        // ADRS[0 ∶ 9] ∥ toByte(Y, 1) ∥ toByte(0, 12)
-        adrs[9] = S[0];
-
-        // toByte(0, 12)
-        unsigned char zero[12];
-        toByte(0, 12, zero);
-
-        // ADRS[0 ∶ 9] ∥ toByte(Y, 1) ∥ toByte(0, 12)
-        memcpy(adrs + 10, zero, 12); // 10, 11, ..., 21
-    }
-}
-
-void set_key_pair_addr_c(ADRSc adrs, unsigned int i)
-{
-    if (adrs != NULL)
-    {
-        // TODO
-    }
-}
-
-void set_tree_index_c(ADRSc adrs, unsigned int i)
-{
-    if (adrs != NULL)
-    {
-        unsigned char S[4];
-        toByte((unsigned long long)i, 4, S);
-
-        // ADRS[18:22]
-        memcpy(adrs + 18, S, 4); // 18, 19, 20, 21
-    }
-}
-
-// end of ADRSc member function
 
 /**
  * See https://github.com/sphincs/sphincsplus/blob/master/ref/address.c#L11
