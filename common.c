@@ -16,6 +16,7 @@ void test_common()
     set_layer_addr(adrs, len);
     set_tree_height(adrs, i);
 
+    unsigned int type = 4;  // FORS_ROOTS)
     set_type_and_clear(adrs, type);
 
     unsigned long long key_pair_addr = 2;
@@ -316,3 +317,4 @@ void set_tree_index(ADRS adrs, unsigned int i)
         memcpy(((unsigned char *)adrs) + 28, S, 4);     // 28, 29, 30, 31
     }
 }
+
