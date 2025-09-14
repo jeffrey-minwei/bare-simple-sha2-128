@@ -122,14 +122,14 @@ H(PK.seed, ADRS, M_2) = Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS
  * n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
  * p_pk_seed and p_sk_seed both are pointer to the first element of an array of length at least 16.
  */
-void prf(const uint8_t *p_pk_seed, const uint8_t *p_sk_seed, const uint32_t *addr, unsigned char *p_out)
+void prf(const uint8_t *p_pk_seed, const uint8_t *p_sk_seed, const ADRS adrs, unsigned char *p_out)
 {
     // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
     
     // p_pk_seed is a pointer to the first element of an array of length at least 16.
     // p_sk_seed is a pointer to the first element of an array of length at least 16.
 
-    if (p_pk_seed == NULL || p_sk_seed == NULL || addr == NULL || p_out == NULL)
+    if (p_pk_seed == NULL || p_sk_seed == NULL || adrs == NULL || p_out == NULL)
     {
         return;
     }
@@ -157,9 +157,9 @@ void prf(const uint8_t *p_pk_seed, const uint8_t *p_sk_seed, const uint32_t *add
 /**
  * F(PK.seed, ADRS, M_1) = Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ M_1))
  */
-void F(const uint8_t *p_pk_seed, const uint32_t *addr, const uint8_t *p_M_1, unsigned char *p_out)
+void F(const uint8_t *p_pk_seed, const ADRS adrs, const uint8_t *p_M_1, unsigned char *p_out)
 {
-    if (p_pk_seed == NULL || addr == NULL || p_M_1 == NULL || p_out == NULL)
+    if (p_pk_seed == NULL || adrs == NULL || p_M_1 == NULL || p_out == NULL)
     {
         return;
     }
@@ -182,9 +182,9 @@ void F(const uint8_t *p_pk_seed, const uint32_t *addr, const uint8_t *p_M_1, uns
 /**
  * H(PK.seed, ADRS, M_2) = Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ M_2))
  */
-void H(const uint8_t *p_pk_seed, const uint32_t *addr, const uint8_t *p_M_2, unsigned char *p_out)
+void H(const uint8_t *p_pk_seed, const ADRS adrs, const uint8_t *p_M_2, unsigned char *p_out)
 {
-    if (p_pk_seed == NULL || addr == NULL || p_M_2 == NULL || p_out == NULL)
+    if (p_pk_seed == NULL || adrs == NULL || p_M_2 == NULL || p_out == NULL)
     {
         return;
     }
@@ -235,7 +235,7 @@ void set_tree_height(ADRS adrs, unsigned long long i)
         toByte((unsigned long long)i, 4, S);
     
         // ADRS[24:28]
-        memcpy(((unsigned char *)adrs) + 24, S, 4);   // 24, 25, 26, 27
+        memcpy(adrs + 24, S, 4);   // 24, 25, 26, 27
     }
 }
 
@@ -253,7 +253,7 @@ void set_type_and_clear(ADRS adrs, unsigned int Y)
         memcpy(((unsigned char *)adrs) + 16, S, 4);   // 16, 17, 18, 19
 
         toByte(0, 12, S);
-        memcpy(((unsigned char *)adrs) + 20, S, 12);  // 20, 21, ..., 31
+        memcpy(adrs + 20, S, 12);  // 20, 21, ..., 31
     }
 }
 
@@ -268,7 +268,7 @@ void set_key_pair_addr(ADRS adrs, unsigned long long i)
         toByte(i, 4, key_pair_addr);
 
         // ADRS[20:24], ADRS[20, 21, 22, 23]
-        memcpy(((unsigned char *)adrs) + 20, key_pair_addr, 4);  // 20, 21, 22, 23
+        memcpy(adrs + 20, key_pair_addr, 4);  // 20, 21, 22, 23
     }
 }
 
@@ -283,7 +283,7 @@ void set_chain_addr(ADRS adrs, unsigned long long i)
         toByte(i, 4, chain_addr);
 
         // ADRS[24:28], ADRS[24, 25, 26, 27]
-        memcpy(((unsigned char *)adrs) + 24, chain_addr, 4);   // 24, 25, 26, 27
+        memcpy(adrs + 24, chain_addr, 4);   // 24, 25, 26, 27
     }
 }
 
@@ -299,7 +299,7 @@ void set_hash_addr(ADRS adrs, unsigned long long i)
         toByte(i, 4, hash_addr);
 
         // ADRS[28:32], ADRS[28, 29, 30, 31]
-        memcpy(((unsigned char *)adrs) + 28, hash_addr, 4);
+        memcpy(adrs + 28, hash_addr, 4);
     }
 }
 
@@ -314,7 +314,7 @@ void set_tree_index(ADRS adrs, unsigned int i)
         toByte((unsigned long long)i, 4, S);
 
         // ADRS[28:32], ADRS[28, 29, 30, 31]
-        memcpy(((unsigned char *)adrs) + 28, S, 4);     // 28, 29, 30, 31
+        memcpy(adrs + 28, S, 4);     // 28, 29, 30, 31
     }
 }
 
