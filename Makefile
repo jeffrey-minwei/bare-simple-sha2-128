@@ -63,28 +63,7 @@ RENODE_IMG = antmicro/renode@sha256:1a4879e047b22827205f4fb1d1e5474d5fdce17eb69f
 WORKDIR     ?= $(shell pwd)
 RESC        ?= run_sign.resc
 
-common.o: common.c
-	$(CC) $(CFLAGS) -c $^ -o $@
-
-addr_compressed.o: addr_compressed.c
-	$(CC) $(CFLAGS) -c $^ -o $@
-
-keygen.o: keygen.c
-	$(CC) $(CFLAGS) -c $^ -o $@
-
-sha256.o: sha256.c
-	$(CC) $(CFLAGS) -c $^ -o $@
-
-base_2b.o: base_2b.c
-	$(CC) $(CFLAGS) -c $^ -o $@
-
-fors_sk_gen.o: fors_sk_gen.c
-	$(CC) $(CFLAGS) -c $^ -o $@
-
-fors_sign.o: fors_sign.c
-	$(CC) $(CFLAGS) -c $^ -o $@
-
-slh_dsa_sign.o: slh_dsa_sign.c
+%.o: %.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 all: sign.elf
