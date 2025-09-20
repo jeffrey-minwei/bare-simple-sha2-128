@@ -51,6 +51,45 @@ jobs:
       - name: Assert nrfxlib present
         run: test -d "${NRFXLIB_DIR}/crypto"
 
+      - name: Locate nrf_cc310_bl static libs (soft-float only)
+        run: |
+          set -euo pipefail
+          ROOT="${NRFXLIB_DIR:-${GITHUB_WORKSPACE}/third_party/nrfxlib}"
+          paths=$(find "${roots[@]}" -type f -name 'libnrf_cc310_bl*.a' 2>/dev/null | grep '/soft-float/' | sort -u)
+          if [ -z "$paths" ]; then
+            echo "FATAL: no libnrf_cc310_bl*.a (soft-float) found" >&2
+            find "${roots[@]}" -type f -name 'libnrf_cc310_bl*.a' 2>/dev/null | sort -u || true
+            exit 1
+          fi
+          printf '%s\n' "$paths"
+          {
+            echo 'cc310_bl_paths<<EOF'
+            printf '%s\n' "$paths"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Find CC310/CC312 C/H files in nrfxlib
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="${NRFXLIB_DIR:-${GITHUB_WORKSPACE}/third_party/nrfxlib}"
+          test -d "$ROOT" || { echo "FATAL: nrfxlib not found at $ROOT"; exit 1; }
+      
+          # find file/path contains cc310/cc312 .c/.h files (case-insensitive)
+          mapfile -t HITS < <(
+            find "$ROOT" -type f \
+              \( -iname "*cc31[02]*.c" -o -iname "*cc31[02]*.h" \
+                 -o -ipath "*/cc31[02]/*.c" -o -ipath "*/cc31[02]/*.h" \) \
+              | sort
+          )
+      
+          if [ "${#HITS[@]}" -eq 0 ]; then
+            echo "FATAL: No CC310/CC312 .c/.h files under $ROOT"
+            exit 1
+          fi
+      
+          printf 'FOUND: %s\n' "${HITS[@]}"
+
       - name: Build x86
         run: |
           set -e
@@ -78,8 +117,8 @@ jobs:
           make clean
           make TARGET=nrf5340 NRFXLIB_DIR="${NRFXLIB_DIR}"
 
-      - name: Show sign_nrf5340dk.map
+      - name: Show sign_nrf5340.map
         shell: bash
         run: |
           set -e
-          head -n 300 sign_nrf5340dk.map
+          head -n 300 sign_nrf5340.map
