@@ -1,11 +1,21 @@
 .DEFAULT_GOAL := all
 .PHONY: all
 
+# ===== nRF nrfxlib (CC31x) autodetect: headers + libs =====
+NRFXLIB_DIR ?= $(abspath third_party/nrfxlib)
+
 # clean help ci-run 以外一律要指定 TARGET
 ifeq (,$(filter clean help ci-run%,$(MAKECMDGOALS)))
+
 ifeq ($(strip $(TARGET)),)
 $(error TARGET is required, ex. make TARGET=nrf52840)
 endif
+
+# nrfxlib/crypto is required
+ifeq ("$(wildcard $(NRFXLIB_DIR)/crypto)","")
+$(error FATAL: nrfxlib not found at $(NRFXLIB_DIR))
+endif
+
 endif
 
 OBJS := addr_compressed.o common.o base_2b.o keygen.o sha256.o slh_dsa_sign.o fors_sign.o fors_sk_gen.o
@@ -30,14 +40,16 @@ else ifeq ($(TARGET),nrf52840)
   CFLAGS := -mcpu=cortex-m4 -mthumb -O2 -ffreestanding -Wall -Wextra -Wl,--gc-sections -specs=nano.specs -nostartfiles
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map
   ELF := sign_nrf52840.elf
+  NRF_CC_BACKEND := nrf_cc310_mbedcrypto
 
-else ifeq ($(TARGET),nrf5340dk)
+else ifeq ($(TARGET),nrf5340)
   STARTUP := platforms/nrf5340dk/startup.c
   LDS  := platforms/nrf5340dk/linker.ld
   RAND_SRC := platforms/nrf5340dk/rdrand.c
   CFLAGS := -mcpu=cortex-m33 -mthumb -O2 -ffreestanding -Wall -Wextra -Wl,--gc-sections -specs=nano.specs -nostartfiles
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340.map
   ELF := sign_nrf5340dk.elf
+  NRF_CC_BACKEND := nrf_cc312_mbedcrypto
 
 endif
 

@@ -61,7 +61,7 @@ jobs:
         run: |
           set -e
           make clean
-          make TARGET=nrf52840  
+          make TARGET=nrf52840 NRFXLIB_DIR="${NRFXLIB_DIR}"
 
       - name: Show sign_nrf52840.map
         shell: bash
@@ -76,7 +76,7 @@ jobs:
         run: |
           set -e
           make clean
-          make TARGET=nrf5340dk
+          make TARGET=nrf5340 NRFXLIB_DIR="${NRFXLIB_DIR}"
 
       - name: Show sign_nrf5340dk.map
         shell: bash
