@@ -32,6 +32,18 @@ void test_common()
     set_tree_index(adrs, index);
 }
 
+void compress_adrs(uint8_t c[22], const ADRS adrs)
+{
+    // ADRS𝑐 = ADRS[3] ∥ ADRS[8 ∶ 16] ∥ ADRS[19] ∥ ADRS[20 ∶ 32]
+    c[0] = adrs[3];
+    memcpy(c, adrs, 1);   // ADRS[3]
+
+    memcpy(c + 1, adrs + 8, 8);   // ADRS[8 ∶ 16], len is 8
+    c[9] = adrs[19];              // ... ∥ ADRS[19]
+
+    memcpy(c + 10, adrs + 20, 12);  //  ∥ ADRS[20 ∶ 32], len is 12
+}
+
 /*
 
 Based on the algorithm 2 listed on page 25 of the NIST FIPS 205 document (https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf),
@@ -122,14 +134,14 @@ H(PK.seed, ADRS, M_2) = Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS
  * n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
  * p_pk_seed and p_sk_seed both are pointer to the first element of an array of length at least 16.
  */
-void prf(const uint8_t *p_pk_seed, const uint8_t *p_sk_seed, const ADRS adrs, unsigned char *p_out)
-{
+void prf(const uint8_t pk_seed[SPX_N], const uint8_t sk_seed[SPX_N], const ADRS adrs, uint8_t out[SPX_N])
+{    
     // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
     
-    // p_pk_seed is a pointer to the first element of an array of length at least 16.
-    // p_sk_seed is a pointer to the first element of an array of length at least 16.
+    // 這亂數是暫時的
+    //rdrand_bytes(p_out, 16);
 
-    if (p_pk_seed == NULL || p_sk_seed == NULL || adrs == NULL || p_out == NULL)
+    if (pk_seed == NULL || sk_seed == NULL || adrs == NULL || out == NULL)
     {
         return;
     }
@@ -138,70 +150,32 @@ void prf(const uint8_t *p_pk_seed, const uint8_t *p_sk_seed, const ADRS adrs, un
     // PRF(PK.seed, SK.seed, ADRS) = Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed))
     //
 
-    // toByte(0, 64 − n)
-    unsigned char S[48];   // n: 16, 64 - n = 48
-    toByte(0, 48, S);
-
-    // PK.seed ∥ toByte(0, 64 − n)
-    unsigned char combined[64];
+    // size of PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed
+    int size = 64 + 22 + SPX_N;  // ADRS_c is an array which length is 22
+    unsigned char combined[size];
 
     // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
-    unsigned int seed_len = 16;
-    memcpy(combined, p_pk_seed, seed_len);
-    memcpy(combined + seed_len, S, 48);
-
-    // TODO
+    memcpy(combined, pk_seed, SPX_N);
     
-}
-
-/**
- * F(PK.seed, ADRS, M_1) = Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ M_1))
- */
-void F(const uint8_t *p_pk_seed, const ADRS adrs, const uint8_t *p_M_1, unsigned char *p_out)
-{
-    if (p_pk_seed == NULL || adrs == NULL || p_M_1 == NULL || p_out == NULL)
-    {
-        return;
-    }
-
-    // toByte(0, 64 − n)
-    unsigned char S[48];   // n: 16, 64 - n = 48
-    toByte(0, 48, S);
-
     // PK.seed ∥ toByte(0, 64 − n)
-    unsigned char combined[64];
+    memset(combined + SPX_N, 0, (64 - SPX_N));
 
-    // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
-    unsigned int seed_len = 16;
-    memcpy(combined, p_pk_seed, seed_len);
-    memcpy(combined + seed_len, S, 48);
+    // ADRSc is a 22 bytes array
+    uint8_t adrs_c[22];
+    compress_adrs(adrs_c, adrs);
 
-    // TODO
-}
+    // PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c
+    memcpy(combined + 64, adrs_c, sizeof(adrs_c));
 
-/**
- * H(PK.seed, ADRS, M_2) = Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ M_2))
- */
-void H(const uint8_t *p_pk_seed, const ADRS adrs, const uint8_t *p_M_2, unsigned char *p_out)
-{
-    if (p_pk_seed == NULL || adrs == NULL || p_M_2 == NULL || p_out == NULL)
-    {
-        return;
-    }
+    // PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed
+    memcpy(combined + 64 + sizeof(adrs_c), sk_seed, SPX_N);
 
-    // toByte(0, 64 − n)
-    unsigned char S[48];   // n: 16, 64 - n = 48
-    toByte(0, 48, S);
+    // SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed)
+    uint8_t out32[32];
+    sha256(combined, sizeof(combined), out32);
 
-    // PK.seed ∥ toByte(0, 64 − n)
-    unsigned char combined[64];
-
-    // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
-    unsigned int seed_len = 16;
-    memcpy(combined, p_pk_seed, seed_len);
-    memcpy(combined + seed_len, S, 48);
-
-    // TODO
+    // Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed))
+    memcpy(out, out32, SPX_N);
 }
 
 /**

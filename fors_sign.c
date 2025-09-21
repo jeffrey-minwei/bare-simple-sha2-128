@@ -46,7 +46,6 @@ size_t fors_sign(uint8_t *sig_ptr,
                  uint64_t tree_idx, 
                  uint32_t leaf_idx)
 {
-    test_fors_sk_gen();
 
     // a will be 6, 8, 9, 12 or 14
     int a = 6;

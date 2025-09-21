@@ -65,7 +65,6 @@ int main(void)
     uarte0_tx(msg, sizeof(msg) - 1);
 
     test_common();
-    test_fors_sk_gen();
 
     uint8_t sk[SPX_SK_BYTES];
     uint8_t pk[SPX_PK_BYTES];
