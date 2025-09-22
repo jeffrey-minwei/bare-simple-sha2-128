@@ -14,7 +14,7 @@
 #include "nrf_cc310_bl_hash_sha256.h"
 
 int sha256_compute(const uint8_t *m, unsigned n, uint8_t out32[32]) {
-    if (nrf_cc310_bl_init() != 0) return -1;
+    //if (nrf_cc310_bl_init() != 0) return -1;
 
     uint8_t ctx[32];
     if (nrf_cc310_bl_hash_sha256_init(&ctx) != 0)      return -2;
@@ -75,7 +75,7 @@ void test_sha256()
     if (rc != NRF_CC310_BL_HASH_SUCCESS)
     {
         uarte0_puts("nrf_cc310_bl_init FAIL\n");
-        return;
+        //return;
     }
     
     // Run KATs
