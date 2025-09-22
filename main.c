@@ -3,6 +3,7 @@
 #include "uart_min.h"
 #include "common.h"
 #include "keygen.h"
+#include "sha256.h"
 #include "slh_dsa_sign.h"
 #include "fors_sk_gen.h"
 
@@ -64,6 +65,7 @@ int main(void)
     // test uart
     uarte0_tx(msg, sizeof(msg) - 1);
 
+    test_sha256();
     test_common();
 
     uint8_t sk[SPX_SK_BYTES];

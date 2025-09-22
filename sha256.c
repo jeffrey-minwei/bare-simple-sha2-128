@@ -3,6 +3,105 @@
 #include <stddef.h>
 #include <string.h>
 
+
+#if defined(CRYPTO_BACKEND_CC310_BL)
+
+#ifndef NRF_CC310_BL_HASH_SUCCESS
+#define NRF_CC310_BL_HASH_SUCCESS 0
+#endif
+
+#include "nrf_cc310_bl_init.h"
+#include "nrf_cc310_bl_hash_sha256.h"
+
+int sha256_compute(const uint8_t *m, unsigned n, uint8_t out32[32]) {
+    if (nrf_cc310_bl_init() != 0) return -1;
+
+    uint8_t ctx[32];
+    if (nrf_cc310_bl_hash_sha256_init(&ctx) != 0)      return -2;
+    if (nrf_cc310_bl_hash_sha256_update(&ctx, m, n) != 0) return -3;
+    if (nrf_cc310_bl_hash_sha256_finalize(&ctx, out32) != 0) return -4;
+
+    return 0;
+}
+
+/**
+ * return 0 if all equals
+ */
+int eq(uint8_t *a, uint8_t *b, unsigned int len)
+{
+    for(int i = 0; i < len; ++i)
+    {
+        if (a[i] != b[i])
+        {
+            // not equals
+            return 1;
+        }
+    }
+    // all equals
+    return 0;
+}
+
+void test_sha256()
+{
+    uarte0_puts("start test sha256\n");
+
+    // Known-answer tests (KAT) from NIST / RFC 6234.
+    static const uint8_t exp_empty[32] = {
+        0xE3,0xB0,0xC4,0x42,0x98,0xFC,0x1C,0x14,
+        0x9A,0xFB,0xF4,0xC8,0x99,0x6F,0xB9,0x24,
+        0x27,0xAE,0x41,0xE4,0x64,0x9B,0x93,0x4C,
+        0xA4,0x95,0x99,0x1B,0x78,0x52,0xB8,0x55
+    };
+    static const uint8_t exp_abc[32] = {
+        0xBA,0x78,0x16,0xBF,0x8F,0x01,0xCF,0xEA,
+        0x41,0x41,0x40,0xDE,0x5D,0xAE,0x22,0x23,
+        0xB0,0x03,0x61,0xA3,0x96,0x17,0x7A,0x9C,
+        0xB4,0x10,0xFF,0x61,0xF2,0x00,0x15,0xAD
+    };
+    static const char abc[] = "abc";
+
+    uint8_t out32[32];
+    sha256(abc, sizeof(abc), out32);
+    uarte0_hex("sha256 result", out32, sizeof(out32) / sizeof(out32[0]));
+    if (0 != eq(out32, exp_abc, sizeof(exp_abc)))
+    {
+        uarte0_puts("test sha256 FAIL\n");
+        return;
+    }
+    uarte0_puts("test sha256 SUCCESS\n");
+
+    // Library init (required by cc310_bl)
+    int rc = nrf_cc310_bl_init();
+    if (rc != NRF_CC310_BL_HASH_SUCCESS)
+    {
+        uarte0_puts("nrf_cc310_bl_init FAIL\n");
+        return;
+    }
+    
+    // Run KATs
+    if (sha256_compute("", 0, exp_empty)) 
+    {
+        uarte0_puts("test sha256_compute FAIL\n");
+        return;
+    }
+
+    if (sha256_compute(abc, sizeof(abc) - 1, exp_abc))
+    {
+        uarte0_puts("test sha256 FAIL\n");
+        return;
+    }
+
+    uarte0_puts("test sha256 PASS");
+}
+
+#else
+
+void test_sha256()
+{
+}
+
+#endif
+
 static inline uint32_t rotr(uint32_t x, uint32_t n){ return (x >> n) | (x << (32U - n)); }
 static inline uint32_t Ch (uint32_t x, uint32_t y, uint32_t z){ return (x & y) ^ (~x & z); }
 static inline uint32_t Maj(uint32_t x, uint32_t y, uint32_t z){ return (x & y) ^ (x & z) ^ (y & z); }
