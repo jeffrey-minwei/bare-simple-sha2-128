@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "params.h"
+
 void test_common();
 
 /**
@@ -67,3 +69,4 @@ void set_hash_addr(ADRS adrs, unsigned long long i);
 void set_tree_index(ADRS adrs, unsigned int i);
 
 #endif
+
