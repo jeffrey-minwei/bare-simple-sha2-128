@@ -1,27 +1,9 @@
-// sha256.c (final, drop-in)
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
 
-
-#if defined(CRYPTO_BACKEND_CC310_BL)
-
-#ifndef NRF_CC310_BL_HASH_SUCCESS
-#define NRF_CC310_BL_HASH_SUCCESS 0
-#endif
-
-#include "nrf_cc310_bl_init.h"
-#include "nrf_cc310_bl_hash_sha256.h"
-
-int sha256_compute(const uint8_t *m, unsigned len, uint8_t out32[32]) {
-
-    uint8_t ctx[32];
-    if (nrf_cc310_bl_hash_sha256_init(&ctx) != 0)      return -2;
-    if (nrf_cc310_bl_hash_sha256_update(&ctx, m, len) != 0) return -3;
-    if (nrf_cc310_bl_hash_sha256_finalize(&ctx, out32) != 0) return -4;
-
-    return 0;
-}
+#include "../sha256.h"
+#include "../uart_min.h"
 
 /**
  * return 0 if all equals
@@ -57,41 +39,28 @@ void test_sha256()
         0xB0,0x03,0x61,0xA3,0x96,0x17,0x7A,0x9C,
         0xB4,0x10,0xFF,0x61,0xF2,0x00,0x15,0xAD
     };
+
     static const char abc[] = "abc";
 
     uint8_t out32[32];
+    sha256(abc, sizeof(abc) - 1, out32);
+    uarte0_hex("sha256 result", out32, sizeof(out32) / sizeof(out32[0]));
 
-    // Library init (required by cc310_bl)
-    int rc = nrf_cc310_bl_init();
-    if (rc != NRF_CC310_BL_HASH_SUCCESS)
-    {
-        uarte0_puts("nrf_cc310_bl_init FAIL\n");
-        return;
-    }
-    
-    // Run KATs
-    if (sha256_compute("", 0, exp_empty)) 
-    {
-        uarte0_puts("test sha256_compute FAIL\n");
-        return;
-    }
-
-    if (sha256_compute(abc, sizeof(abc) - 1, exp_abc))
+    if (0 != eq(out32, exp_abc, sizeof(exp_abc)))
     {
         uarte0_puts("test sha256 FAIL\n");
         return;
     }
+    uarte0_puts("test sha256(\"abc\") PASS\n");
 
-    uarte0_puts("test sha256 PASS");
+    sha256("", 0, out32);
+    if (0 != eq(out32, exp_empty, sizeof(exp_empty)))
+    {
+        uarte0_puts("test sha256 FAIL\n");
+        return;
+    }
+    uarte0_puts("test sha256(\"\") PASS\n");
 }
-
-#else
-
-void test_sha256()
-{
-}
-
-#endif
 
 static inline uint32_t rotr(uint32_t x, uint32_t n){ return (x >> n) | (x << (32U - n)); }
 static inline uint32_t Ch (uint32_t x, uint32_t y, uint32_t z){ return (x & y) ^ (~x & z); }
@@ -137,7 +106,7 @@ static void compress(uint32_t H[8], const uint8_t block[64]){
     H[0]+=a; H[1]+=b; H[2]+=c; H[3]+=d; H[4]+=e; H[5]+=f; H[6]+=g; H[7]+=h;
 }
 
-void sha256(const uint8_t *msg, size_t mlen, uint8_t out32[32]){
+void sha256(const uint8_t *msg, size_t mlen, uint8_t out32[32]) {
     uint32_t H[8] = {
         0x6a09e667U,0xbb67ae85U,0x3c6ef372U,0xa54ff53aU,
         0x510e527fU,0x9b05688cU,0x1f83d9abU,0x5be0cd19U

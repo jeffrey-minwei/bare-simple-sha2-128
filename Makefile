@@ -23,35 +23,44 @@ OBJS := addr_compressed.o thf.o common.o base_2b.o keygen.o sha256.o slh_dsa_sig
 CC := arm-none-eabi-gcc
 
 ifeq ($(TARGET),x86)
+  PLATFORM := platforms/x86
   CC := gcc
   CFLAGS := -O3 -std=c11 -Wall -Wextra -Wpedantic -ffunction-sections -fdata-sections -mrdrnd -Wl,--gc-sections
   LDFLAGS := -Wl,-Map,x86_sign.map
   STARTUP :=                         # like platform/x86/startup.c
   LDS  :=                            # like platform/x86/linker.ld
-  RAND_SRC := platforms/x86/rdrand.c
+  RAND_SRC := $(PLATFORM)/rdrand.c
   OBJCOPY := objcopy
   SIZE := size
   ELF := sign_x86.elf
 
 else ifeq ($(TARGET),nrf52840)
-  STARTUP := platforms/nrf52840/startup.c
-  LDS  := platforms/nrf52840/linker.ld
-  RAND_SRC := platforms/nrf52840/rdrand.c
+  PLATFORM := platforms/nrf52840
+  STARTUP := $(PLATFORM)/startup.c
+  LDS  := $(PLATFORM)/linker.ld
+  RAND_SRC := $(PLATFORM)/rdrand.c
   CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 -ffreestanding -Wall -Wextra -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive $(NRFXLIB_DIR)/crypto/nrf_cc310_bl/lib/cortex-m4/soft-float/libnrf_cc310_bl_0.9.12.a -Wl,--no-whole-archive -specs=nano.specs -nostartfiles
   ELF := sign_nrf52840.elf
   NRF_CC_BACKEND := nrf_cc310_mbedcrypto
 
 else ifeq ($(TARGET),nrf5340)
-  STARTUP := platforms/nrf5340dk/startup.c
-  LDS  := platforms/nrf5340dk/linker.ld
-  RAND_SRC := platforms/nrf5340dk/rdrand.c
+  PLATFORM := platforms/nrf5340dk
+  STARTUP := $(PLATFORM)/startup.c
+  LDS  := $(PLATFORM)/linker.ld
+  RAND_SRC := $(PLATFORM)/rdrand.c
   CFLAGS := -mcpu=cortex-m33 -mthumb -O2 -ffreestanding -Wall -Wextra -Wl,--gc-sections
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340.map -specs=nano.specs -nostartfiles
   ELF := sign_nrf5340dk.elf
   NRF_CC_BACKEND := nrf_cc312_mbedcrypto
 
 endif
+
+#SHA256 := $(PLATFORM)/sha256.c
+# compute SHA-256 without hardware acceleration (temporary)
+SHA256 := platforms/sha256.c
+#vpath sha256.c $(PLATFORM) 
+vpath sha256.c platforms
 
 LDFLAGS += -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
 
