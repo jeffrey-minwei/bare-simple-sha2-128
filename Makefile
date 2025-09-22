@@ -57,6 +57,12 @@ LDFLAGS += -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__ae
 
 NM ?= $(shell $(CC) -print-prog-name=nm)
 
+# always include cc310_bl (for SHA-256 public headers)
+CFLAGS += -I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include -I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include
+ifneq ($(NRF_CC_BACKEND),)
+CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
+endif
+
 SRCS := $(STARTUP) $(RAND_SRC) main.c keygen.c sha256.c uart_min.c slh_dsa_sign.c base_2b.c addr_compressed.c common.c fors_sk_gen.c thf.c fors_sign.c
 
 # 用 digest 來完全鎖定版本
