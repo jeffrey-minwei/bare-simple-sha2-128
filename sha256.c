@@ -60,21 +60,13 @@ void test_sha256()
     static const char abc[] = "abc";
 
     uint8_t out32[32];
-    //sha256(abc, sizeof(abc), out32);
-    //uarte0_hex("sha256 result", out32, sizeof(out32) / sizeof(out32[0]));
-    //if (0 != eq(out32, exp_abc, sizeof(exp_abc)))
-    //{
-    //    uarte0_puts("test sha256 FAIL\n");
-    //    return;
-    //}
-    //uarte0_puts("test sha256 SUCCESS\n");
 
     // Library init (required by cc310_bl)
     int rc = nrf_cc310_bl_init();
     if (rc != NRF_CC310_BL_HASH_SUCCESS)
     {
         uarte0_puts("nrf_cc310_bl_init FAIL\n");
-        //return;
+        return;
     }
     
     // Run KATs
