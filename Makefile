@@ -39,7 +39,11 @@ else ifeq ($(TARGET),nrf52840)
   STARTUP := $(PLATFORM)/startup.c
   LDS  := $(PLATFORM)/linker.ld
   RAND_SRC := $(PLATFORM)/rdrand.c
-  CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 -ffreestanding -Wall -Wextra -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections
+  CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 \
+            -ffreestanding -Wall -Wextra \
+            -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections \
+            -I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include \
+            -I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive $(NRFXLIB_DIR)/crypto/nrf_cc310_bl/lib/cortex-m4/soft-float/libnrf_cc310_bl_0.9.12.a -Wl,--no-whole-archive -specs=nano.specs -nostartfiles
   ELF := sign_nrf52840.elf
   NRF_CC_BACKEND := nrf_cc310_mbedcrypto
@@ -66,13 +70,11 @@ LDFLAGS += -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__ae
 
 NM ?= $(shell $(CC) -print-prog-name=nm)
 
-# always include cc310_bl (for SHA-256 public headers)
-CFLAGS += -I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include -I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include
 ifneq ($(NRF_CC_BACKEND),)
 CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
 endif
 
-SRCS := $(STARTUP) $(RAND_SRC) main.c keygen.c sha256.c uart_min.c slh_dsa_sign.c base_2b.c addr_compressed.c common.c fors_sk_gen.c thf.c fors_sign.c
+SRCS := $(STARTUP) $(RAND_SRC) main.c keygen.c $(SHA256) uart_min.c slh_dsa_sign.c base_2b.c addr_compressed.c common.c fors_sk_gen.c thf.c fors_sign.c
 
 # 用 digest 來完全鎖定版本
 RENODE_IMG = antmicro/renode@sha256:1a4879e047b22827205f4fb1d1e5474d5fdce17eb69f22726ab1afed479f5e22
