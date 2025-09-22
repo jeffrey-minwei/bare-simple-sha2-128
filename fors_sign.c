@@ -1,6 +1,8 @@
 #include "common.h"
 #include "fors_sign.h"
 #include "fors_sk_gen.h"
+#include "thf.h"
+
 #include "base_2b.h"
 #include "sha256.h"
 
