@@ -38,7 +38,7 @@ else ifeq ($(TARGET),nrf52840)
   LDS  := platforms/nrf52840/linker.ld
   RAND_SRC := platforms/nrf52840/rdrand.c
   CFLAGS := -mcpu=cortex-m4 -mthumb -O2 -ffreestanding -Wall -Wextra -Wl,--gc-sections -specs=nano.specs -nostartfiles
-  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map
+  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive $(NRFXLIB_DIR)/crypto/nrf_cc310_bl/lib/cortex-m4/soft-float/libnrf_cc310_bl_0.9.12.a -Wl,--no-whole-archive
   ELF := sign_nrf52840.elf
   NRF_CC_BACKEND := nrf_cc310_mbedcrypto
 
@@ -52,6 +52,8 @@ else ifeq ($(TARGET),nrf5340)
   NRF_CC_BACKEND := nrf_cc312_mbedcrypto
 
 endif
+
+LDFLAGS += -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
 
 NM ?= $(shell $(CC) -print-prog-name=nm)
 
@@ -70,7 +72,7 @@ all: sign.elf
 
 sign.elf:  $(LDS) $(OBJS)
 	@echo "==> start building with $(CC), output should be $(ELF)"
-	$(CC) $(CFLAGS) $(SRCS) -v $(LDFLAGS) -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy -o $(ELF)
+	$(CC) $(CFLAGS) $(SRCS) -v $(LDFLAGS) -o $(ELF)
 # check memcpy has real implementation
 	$(NM) $(ELF) | grep -E 'memcpy|__aeabi_memcpy'
 
