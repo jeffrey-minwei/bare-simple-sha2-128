@@ -14,9 +14,6 @@
 #include "nrf_cc310_bl_hash_sha256.h"
 
 int sha256_compute(const uint8_t *m, unsigned len, uint8_t out32[32]) {
-    //if (nrf_cc310_bl_init() != 0) return -1;
-
-    int rc = nrf_cc310_bl_hash_sha256_compute(out32, (const uint8_t *)m, len);
 
     uint8_t ctx[32];
     if (nrf_cc310_bl_hash_sha256_init(&ctx) != 0)      return -2;

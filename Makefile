@@ -37,7 +37,7 @@ else ifeq ($(TARGET),nrf52840)
   STARTUP := platforms/nrf52840/startup.c
   LDS  := platforms/nrf52840/linker.ld
   RAND_SRC := platforms/nrf52840/rdrand.c
-  CFLAGS := -mcpu=cortex-m4 -mthumb -O2 -ffreestanding -Wall -Wextra -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections
+  CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 -ffreestanding -Wall -Wextra -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive $(NRFXLIB_DIR)/crypto/nrf_cc310_bl/lib/cortex-m4/soft-float/libnrf_cc310_bl_0.9.12.a -Wl,--no-whole-archive -specs=nano.specs -nostartfiles
   ELF := sign_nrf52840.elf
   NRF_CC_BACKEND := nrf_cc310_mbedcrypto
