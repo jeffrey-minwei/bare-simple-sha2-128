@@ -32,6 +32,39 @@ jobs:
           fi
           echo "$TOOLDIR/bin" >> "$GITHUB_PATH"
 
+      # compute cache key（根據 ETag/Last-Modified； use date if fail）
+      - name: Compute cache key (renode-latest.linux-portable.tar)
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL="https://builds.renode.io/renode-latest.linux-portable.tar.gz"
+          META="$(curl -sI "$URL" | tr -d '\r' | awk -F': ' 'tolower($1)=="etag"||tolower($1)=="last-modified"{print $2}' | tr '\n' ' ')"
+          if [ -z "$META" ]; then META="$(date -u +%Y%m%d)"; fi
+          KEY="$(printf "%s" "$META" | sha256sum | cut -d' ' -f1)"
+          echo "key=$KEY" >> "$GITHUB_OUTPUT"
+
+      - name: Restore Renode portable from cache
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: renode_portable
+          key: renode-portable-${{ steps.meta.outputs.key }}
+          restore-keys: |
+            renode-portable-
+
+      - name: Download & extract Renode portable (if cache miss)
+        if: steps.cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -eux
+          mkdir -p renode_portable
+          wget -q https://builds.renode.io/renode-latest.linux-portable.tar.gz -O renode-latest.linux-portable.tar.gz
+          tar xf renode-latest.linux-portable.tar.gz -C renode_portable --strip-components=1
+
+      - name: Show Renode version
+        run: ./renode_portable/renode --version
+
       - name: Cache nrfxlib
         id: cache-nrfxlib
         uses: actions/cache@v4
