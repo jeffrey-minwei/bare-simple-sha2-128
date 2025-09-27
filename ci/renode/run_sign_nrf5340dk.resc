@@ -1,0 +1,10 @@
+set ansi false
+
+mach create "nrf5340dk_sign"
+
+machine LoadPlatformDescription @ci/renode/nrf5340dk_min.repl
+sysbus LoadELF @sign_nrf5340.elf
+
+showAnalyzer sysbus.uart0
+
+start

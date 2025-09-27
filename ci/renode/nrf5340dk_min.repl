@@ -1,0 +1,16 @@
+nvic: IRQControllers.NVIC @ sysbus 0xE000E100
+    -> cpu@0
+
+cpu: CPU.CortexM @ sysbus
+    cpuType: "cortex-m33"
+    nvic: nvic
+
+flash: Memory.MappedMemory @ sysbus 0x00000000
+    size: 0x00100000
+
+ram: Memory.MappedMemory @ sysbus 0x20000000
+    size: 0x00080000
+
+uart0: UART.NRF52840_UART @ sysbus 0x40002000
+    easyDMA: true
+    -> nvic@2
