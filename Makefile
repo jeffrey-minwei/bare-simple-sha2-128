@@ -29,7 +29,6 @@ ifeq ($(TARGET),x86)
   LDFLAGS := -Wl,-Map,x86_sign.map
   STARTUP :=                         # like platform/x86/startup.c
   LDS  :=                            # like platform/x86/linker.ld
-  RAND_SRC := $(PLATFORM)/rdrand.c
   OBJCOPY := objcopy
   SIZE := size
   ELF := sign_x86.elf
@@ -38,7 +37,6 @@ else ifeq ($(TARGET),nrf52840)
   PLATFORM := platforms/nrf52840
   STARTUP := $(PLATFORM)/startup.c
   LDS  := $(PLATFORM)/linker.ld
-  RAND_SRC := $(PLATFORM)/rdrand.c
   CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra \
             -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections \
@@ -53,7 +51,6 @@ else ifeq ($(TARGET),nrf5340dk)
   PLATFORM := platforms/nrf5340dk
   STARTUP := $(PLATFORM)/startup.c
   LDS  := $(PLATFORM)/linker.ld
-  RAND_SRC := $(PLATFORM)/rdrand.c
   CFLAGS := -mcpu=cortex-m33 -mthumb -O2 -ffreestanding -Wall -Wextra -Wl,--gc-sections
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340dk.map -specs=nano.specs -nostartfiles
   ELF := sign_nrf5340dk.elf
