@@ -84,7 +84,7 @@ ifneq ($(NRF_CC_BACKEND),)
 CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
 endif
 
-SRCS := $(STARTUP) $(RAND_SRC) main.c keygen.c $(SHA256) uart_min.c slh_dsa_sign.c base_2b.c addr_compressed.c common.c fors_sk_gen.c thf.c fors_sign.c
+SRCS := $(STARTUP) $(RNG_SRC) main.c keygen.c $(SHA256) uart_min.c slh_dsa_sign.c base_2b.c addr_compressed.c common.c fors_sk_gen.c thf.c fors_sign.c
 
 RENODE_IMG = renode_pinned:cached
 
@@ -108,7 +108,7 @@ endif
 
 all: sign.elf
 
-sign.elf:  $(LDS) $(OBJS)
+sign.elf:  $(LDS) $(OBJS) $(RNG_OBJS)
 	@echo "==> start building with $(CC), output should be $(ELF)"
 	$(CC) $(CFLAGS) $(SRCS) -v $(LDFLAGS) -o $(ELF)
 # check memcpy has real implementation
@@ -121,7 +121,6 @@ clean:
 # 本機（有裝 renode）
 run: $(ELF) $(RESC)
 	renode -e 'include @$(RESC); sleep 2; q'
-
 
 RENODE  ?= ./renode_portable/renode
 

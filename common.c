@@ -1,8 +1,11 @@
 #include "common.h"
+#include "hal_rng.h"
 #include "uart_min.h"
 
 #include <stddef.h>
 #include <string.h>
+
+static void test_rng();
 
 void test_common()
 {
@@ -10,6 +13,8 @@ void test_common()
     unsigned int len = 1;
     toByte((unsigned long long)len, 4, S);
     uarte0_hex("S", S, sizeof(S) / sizeof(S[0]));
+
+    test_rng();
 
     ADRS adrs;
     unsigned long long i = 1;
@@ -30,6 +35,31 @@ void test_common()
 
     unsigned int index = 3;
     set_tree_index(adrs, index);
+}
+
+static void test_rng()
+{
+    uint8_t sk_seed[SPX_N];
+    uint8_t pk_seed[SPX_N];
+
+    unsigned char entropy_input[48];
+    for (int i=0; i<48; i++) {
+        entropy_input[i] = i;
+    }
+
+    rng_init(entropy_input, NULL, 256);
+    rng_bytes(sk_seed, SPX_N);
+    rng_bytes(pk_seed, SPX_N);
+    
+    uarte0_hex("pk_seed", pk_seed, SPX_N);
+
+    ADRS adrs;
+
+    // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
+    uint8_t buf[SPX_N];
+    prf(pk_seed, sk_seed, adrs, buf);
+
+    uarte0_hex("prf store to buf", buf, SPX_N);
 }
 
 void compress_adrs(uint8_t c[22], const ADRS adrs)
@@ -137,9 +167,6 @@ H(PK.seed, ADRS, M_2) = Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS
 void prf(const uint8_t pk_seed[SPX_N], const uint8_t sk_seed[SPX_N], const ADRS adrs, uint8_t out[SPX_N])
 {    
     // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
-    
-    // 這亂數是暫時的
-    //rdrand_bytes(p_out, 16);
 
     if (pk_seed == NULL || sk_seed == NULL || adrs == NULL || out == NULL)
     {
