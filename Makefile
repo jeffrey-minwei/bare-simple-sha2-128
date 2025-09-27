@@ -55,7 +55,7 @@ else ifeq ($(TARGET),nrf5340dk)
   LDS  := $(PLATFORM)/linker.ld
   RAND_SRC := $(PLATFORM)/rdrand.c
   CFLAGS := -mcpu=cortex-m33 -mthumb -O2 -ffreestanding -Wall -Wextra -Wl,--gc-sections
-  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340.map -specs=nano.specs -nostartfiles
+  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340dk.map -specs=nano.specs -nostartfiles
   ELF := sign_nrf5340dk.elf
   NRF_CC_BACKEND := nrf_cc312_mbedcrypto
   RESC := ./ci/renode/run_sign_nrf5340dk.resc
