@@ -66,6 +66,14 @@ SHA256 := platforms/sha256.c
 #vpath sha256.c $(PLATFORM) 
 vpath sha256.c platforms
 
+# Only use KAT rng.c when make KAT_RNG=1
+ifeq ($(KAT_RNG),1)
+  RNG_SRC := kat/rng.c kat/kat_rng.c kat/aes256.c
+  CFLAGS  += -DKAT_RNG
+else
+  RNG_SRC := $(PLATFORM)/rng.c
+endif
+
 LDFLAGS += -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
 
 NM ?= $(shell $(CC) -print-prog-name=nm)
@@ -82,8 +90,20 @@ RENODE_IMG = antmicro/renode@sha256:1a4879e047b22827205f4fb1d1e5474d5fdce17eb69f
 WORKDIR     ?= $(shell pwd)
 RESC        ?= run_sign.resc
 
+RNG_OBJS := $(RNG_SRC:.c=.o)
+
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^ -o $@
+
+ifneq ($(filter clean,$(MAKECMDGOALS)),)
+  # do nothing
+else
+  $(info NRFXLIB_DIR = $(NRFXLIB_DIR))
+  $(info NRF_CC_BACKEND = $(NRF_CC_BACKEND))
+  $(info RNG_SRC = $(RNG_SRC))
+  $(info RNG_OBJS = $(RNG_OBJS))
+
+endif
 
 all: sign.elf
 

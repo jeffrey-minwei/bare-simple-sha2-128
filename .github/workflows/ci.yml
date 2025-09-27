@@ -94,13 +94,13 @@ jobs:
         run: |
           set -e
           make clean
-          make TARGET=x86
+          make TARGET=x86 KAT_RNG=1
 
       - name: Build nrf52840
         run: |
           set -e
           make clean
-          make TARGET=nrf52840 NRFXLIB_DIR="${NRFXLIB_DIR}"
+          make TARGET=nrf52840 NRFXLIB_DIR="${NRFXLIB_DIR}" KAT_RNG=1
 
       - name: Show sign_nrf52840.map
         shell: bash
@@ -115,7 +115,7 @@ jobs:
         run: |
           set -e
           make clean
-          make TARGET=nrf5340 NRFXLIB_DIR="${NRFXLIB_DIR}"
+          make TARGET=nrf5340 NRFXLIB_DIR="${NRFXLIB_DIR}" KAT_RNG=1
 
       - name: Show sign_nrf5340.map
         shell: bash
