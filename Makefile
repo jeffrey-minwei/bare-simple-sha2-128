@@ -49,7 +49,7 @@ else ifeq ($(TARGET),nrf52840)
   NRF_CC_BACKEND := nrf_cc310_mbedcrypto
   RESC := run_sign.resc
 
-else ifeq ($(TARGET),nrf5340)
+else ifeq ($(TARGET),nrf5340dk)
   PLATFORM := platforms/nrf5340dk
   STARTUP := $(PLATFORM)/startup.c
   LDS  := $(PLATFORM)/linker.ld
