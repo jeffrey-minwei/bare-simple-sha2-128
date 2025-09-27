@@ -3,7 +3,7 @@
 [![CI (Bare-metal nRF52840 CI)](https://github.com/jeffrey-minwei/bare-simple-sha2-128/actions/workflows/ci.yml/badge.svg)](https://github.com/jeffrey-minwei/bare-simple-sha2-128/actions/workflows/ci.yml)
 
 
-雖然本專案的原始碼是依照 [FIPS 205](https://csrc.nist.gov/pubs/fips/205/final) 的 algorithms 撰寫，
+雖然本專案的原始碼是依照 [FIPS 205](https://csrc.nist.gov/pubs/fips/205/final) <sub>[[`1`](https://csrc.nist.gov/pubs/fips/205/final)]</sub> 的 algorithms 撰寫，
 但在實作細節上，大量參考了 [SPHINCS+ 參考實作](https://github.com/sphincs/sphincsplus/)。
 
 This implementation follows the algorithms described in **[FIPS 205](https://csrc.nist.gov/pubs/fips/205/final)**, while heavily inspired by the [The SPHINCS+ reference code](https://github.com/sphincs/sphincsplus/).
@@ -20,7 +20,23 @@ This implementation follows the algorithms described in **[FIPS 205](https://csr
 <img width="998" height="160" alt="image" src="https://github.com/user-attachments/assets/4e386d49-1cd1-48a2-b022-4170cab53c46" />
 
 
+## Make
+For develop or test purpose, random could be generated with KAT rng.c which is provided by NIST. <sub>[[`2`](https://csrc.nist.gov/csrc/media/Projects/post-quantum-cryptography/documents/archive/kat-sept2017.pdf)]</sub>
+
+
+```shell
+make TARGET=nrf52840 NRFXLIB_DIR="${NRFXLIB_DIR}" KAT_RNG=1
+```
+
+```shell
+make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" KAT_RNG=1
+```
+
+## References
+1. [FIPS 205 Stateless Hash-Based Digital Signature Standard](https://csrc.nist.gov/pubs/fips/205/final)
+2. [PQC - Known Answer Tests and Test Vectors](https://csrc.nist.gov/csrc/media/Projects/post-quantum-cryptography/documents/archive/kat-sept2017.pdf)
+
+
 
 本專案以 Apache License 2.0 授權公開。
-
 

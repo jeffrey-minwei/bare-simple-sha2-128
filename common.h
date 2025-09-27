@@ -26,6 +26,7 @@ void test_common();
  *     -----------------
  */
 typedef unsigned char ADRS[32];   // ADRS  = 32 bytes
+typedef unsigned char N_BYTES[SPX_N];  // n bytes
 
 void compress_adrs(uint8_t c[22], const ADRS adrs);
 

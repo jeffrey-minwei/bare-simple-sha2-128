@@ -259,6 +259,19 @@ void set_type_and_clear(ADRS adrs, unsigned int Y)
 }
 
 /**
+ * key_pair_addr is 4 bytes
+ */
+unsigned long long get_key_pair_addr(ADRS adrs)
+{
+    unsigned char key_pair_addr[4];
+
+    // ADRS[20:24], ADRS[20, 21, 22, 23]
+    memcpy(key_pair_addr, adrs + 20, 4);  // 20, 21, 22, 23
+
+    return toInt(key_pair_addr, 4);
+}
+
+/**
  * See page 12,13,14, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
  */
 void set_key_pair_addr(ADRS adrs, unsigned long long i)
