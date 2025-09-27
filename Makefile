@@ -47,6 +47,7 @@ else ifeq ($(TARGET),nrf52840)
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive $(NRFXLIB_DIR)/crypto/nrf_cc310_bl/lib/cortex-m4/soft-float/libnrf_cc310_bl_0.9.12.a -Wl,--no-whole-archive -specs=nano.specs -nostartfiles
   ELF := sign_nrf52840.elf
   NRF_CC_BACKEND := nrf_cc310_mbedcrypto
+  RESC := run_sign.resc
 
 else ifeq ($(TARGET),nrf5340)
   PLATFORM := platforms/nrf5340dk
@@ -57,6 +58,7 @@ else ifeq ($(TARGET),nrf5340)
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340.map -specs=nano.specs -nostartfiles
   ELF := sign_nrf5340dk.elf
   NRF_CC_BACKEND := nrf_cc312_mbedcrypto
+  RESC := ./ci/renode/run_sign_nrf5340dk.resc
 
 endif
 
@@ -84,8 +86,7 @@ endif
 
 SRCS := $(STARTUP) $(RAND_SRC) main.c keygen.c $(SHA256) uart_min.c slh_dsa_sign.c base_2b.c addr_compressed.c common.c fors_sk_gen.c thf.c fors_sign.c
 
-# 用 digest 來完全鎖定版本
-RENODE_IMG = antmicro/renode@sha256:1a4879e047b22827205f4fb1d1e5474d5fdce17eb69f22726ab1afed479f5e22
+RENODE_IMG = renode_pinned:cached
 
 WORKDIR     ?= $(shell pwd)
 RESC        ?= run_sign.resc
@@ -121,7 +122,23 @@ clean:
 run: $(ELF) $(RESC)
 	renode -e 'include @$(RESC); sleep 2; q'
 
-# CI：用官方 renode 容器；CI 只呼叫這個 target
+
+RENODE  ?= ./renode_portable/renode
+
+strip_ansi = sed 's/\x1B\[[0-9;]*[A-Za-z]//g'
+
 ci-run-nrf52840: $(ELF) $(RESC)
-	docker run --rm -v "$(WORKDIR):/w" $(RENODE_IMG) \
-	  sh -lc 'cd /w && renode --console --disable-xwt -e "set ansi false; include @$(RESC); sleep 2; q"' | sed 's/\x1B\[[0-9;]*[A-Za-z]//g' 
+	@echo "CFLAGS += -I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include" \
+		$(if $(NRF_CC_BACKEND), " -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include")
+	@echo "NRF_LIBS:" && printf "  %s\n" $(NRF_LIBS)
+	$(RENODE) --console --disable-xwt \
+		-e "set ansi false; include @$(RESC); sleep 2; q" \
+		| $(strip_ansi)
+
+ci-run-nrf5340dk: $(ELF) $(RESC)
+	@echo "CFLAGS += $(if $(NRF_CC_BACKEND), " -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include")"
+	@echo "NRF_LIBS:" && printf "  %s\n" $(NRF_LIBS)
+	$(RENODE) --console --disable-xwt -e 'help; q' | grep -i UART | sed 's/\x1B\[[0-9;]*[A-Za-z]//g'
+	$(RENODE) --console --disable-xwt \
+		-e "set ansi false; include @$(RESC); sleep 2; q" \
+		| $(strip_ansi)
