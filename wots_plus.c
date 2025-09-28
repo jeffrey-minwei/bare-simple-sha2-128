@@ -21,8 +21,13 @@ void test_wots_plus()
 
 /**
  * See Page 18, Algorithm 6 wots_pkGen(SK.seed, PK.seed, ADRS), https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ * @param pk      [out] WOTS+ public key 𝑝𝑘.
+ * @param sk_seed [in] 
+ * @param pk_seed [in] 
+ * @return void
  */
-void wots_pk_gen(const unsigned char sk_seed[SPX_N], 
+void wots_pk_gen(uint8_t pk[SPX_N],
+                 const unsigned char sk_seed[SPX_N], 
                  const unsigned char pk_seed[SPX_N], 
                  ADRS adrs)
 {
@@ -36,22 +41,29 @@ void wots_pk_gen(const unsigned char sk_seed[SPX_N],
     set_key_pair_addr(skADRS, key_pair_addr);
 
     // Page 17, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
-    // len = 2*n + 3, n = 16 => len = 2*16 + 3 = 35
-    unsigned int len = 35;
+    // 𝑙𝑔𝑤 is 4 for all parameter sets in this standard
+    // SPX_LEN = 2*n + 3, n = 16 => len = 2*16 + 3 = 35
 
     // Page 18, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
     // 4: for 𝑖 from 0 to len − 1 do 
-    for (unsigned int i = 0; i < len; ++i)
+    N_BYTES tmp[SPX_LEN];
+
+    uint8_t sk[SPX_N];
+    int w = 16;  //  𝑤 = 2^lgw
+    for (unsigned int i = 0; i < SPX_LEN; ++i)
     {
         // 5:    skADRS.setChainAddress(i)
         set_chain_addr(skADRS, (unsigned long long)i);
-        /* 
-          6:     𝑠𝑘 ← PRF(PK.seed, SK.seed, skADRS)          ▷ compute secret value for chain i
-          7:     ADRS.setChainAddress(𝑖) 
-          8:     tmp[i] ← chain(sk, 0, w − 1, PK.seed, ADRS) ▷ compute public value for chain i
-         */
+
+        // 6:     𝑠𝑘 ← PRF(PK.seed, SK.seed, skADRS)          ▷ compute secret value for chain i
+        prf(pk_seed, sk_seed, skADRS, sk);
+
+        // 7:     ADRS.setChainAddress(𝑖) 
+        set_chain_addr(adrs, i);
+
+        // 8:     tmp[i] ← chain(sk, 0, w - 1, PK.seed, ADRS) ▷ compute public value for chain i
+        chain(tmp[i], sk, 0, w - 1, pk_seed, adrs);
     }
-    // 9: end for 
 
     ADRS wotspkADRS;
     memcpy(wotspkADRS, adrs, 32);   // uint32_t[8] => 8 * 4 bytes = 32 bytes
@@ -60,20 +72,58 @@ void wots_pk_gen(const unsigned char sk_seed[SPX_N],
     // 12: wotspkADRS.setKeyPairAddress(ADRS.getKeyPairAddress())
     set_key_pair_addr(wotspkADRS, key_pair_addr);
 
-    // TODO Page 18, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+    // Page 18, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
     // 13: pk ← T_len(PK.seed, wotspkADRS, tmp)     ▷ compress public key
-    // 14: return pk
+    T(SPX_LEN, pk_seed, wotspkADRS, tmp, pk);  // pk is a n length array
+}
+
+static size_t bytes_for_len2_lgw(size_t len2, size_t lgw) {
+    uint64_t bits = (uint64_t)len2 * (uint64_t)lgw;
+    return (size_t)((bits + 7u) >> 3);
 }
 
 /**
  * See Page 20, Algorithm 7, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
  */
 void wots_sign(N_BYTES out[SPX_LEN],
-               const unsigned char *M, 
+               const uint8_t M[SPX_N], 
                const unsigned char sk_seed[SPX_N], 
                const unsigned char pk_seed[SPX_N], 
                ADRS adrs)
 {
+    // 𝑐𝑠𝑢𝑚 ← 0
+    unsigned int csum = 0;
+
+    uint8_t msg[SPX_LEN];
+    int lgw = 4;
+    int len1 = 32;
+    // 𝑚𝑠𝑔 ← base_2b(𝑀, 𝑙𝑔𝑤, 𝑙𝑒𝑛1)
+    // base_2b output: Array of 𝑜𝑢𝑡_𝑙𝑒𝑛 integers in the range [0, … , 2^𝑏 − 1].
+    base_2b(M, lgw, len1, msg);   
+
+    int w = 16;
+    // 3: for 𝑖 from 0 to 𝑙𝑒𝑛1 − 1 do ▷ compute checksum
+    for (int i = 0; i < len1; ++i) {
+        // 4: 𝑐𝑠𝑢𝑚 ← 𝑐𝑠𝑢𝑚 + 𝑤 − 1 − 𝑚𝑠𝑔[𝑖]
+        csum <<= (csum + w - 1 - msg[i]);
+    }
+
+    int len2 = 3;
+    // 6: 𝑐𝑠𝑢𝑚 ← 𝑐𝑠𝑢𝑚 ≪ ((8 − ((𝑙𝑒𝑛2 ⋅ 𝑙𝑔𝑤) mod 8)) mod 8)             ▷ for 𝑙𝑔𝑤 = 4, left shift by 4
+    csum <<= ((8 - ((len2 * lgw) % 8)) % 8);
+
+    // toByte(𝑐𝑠𝑢𝑚, ⌈(𝑙𝑒𝑛2⋅𝑙𝑔𝑤)/8⌉)
+    uint8_t byte_arr_len = 2; // ⌈(len2⋅lgw)/8⌉;, len2 * lgw = 3 * 4 = 12
+    uint8_t byte_arr[byte_arr_len];
+    toByte(csum, byte_arr_len, byte_arr);
+
+    // base_2b(M, lgw, len1, msg);
+    // 7: 𝑚𝑠𝑔 ← 𝑚𝑠𝑔 ∥ base_2b (toByte(𝑐𝑠𝑢𝑚, ⌈(𝑙𝑒𝑛2⋅𝑙𝑔𝑤)/8⌉), 𝑙𝑔𝑤, 𝑙𝑒𝑛2) ▷ convert to base w
+    int size = 1u << lgw;
+    uint8_t tmp_msg[size];
+    base_2b(byte_arr, lgw, len2, tmp_msg);
+    memcpy( ((uint8_t *)msg[0] + size), tmp_msg, sizeof(tmp_msg));
+
     ADRS skADRS;
 
     // 8: skADRS ← ADRS ▷ copy address to create key generation key address
@@ -97,8 +147,8 @@ void wots_sign(N_BYTES out[SPX_LEN],
         // ADRS.setChainAddress(𝑖)
         set_chain_addr(adrs, i);
 
-        // TODO
-        //  𝑠𝑖𝑔[𝑖] ← chain(𝑠𝑘, 0, 𝑚𝑠𝑔[𝑖], PK.seed, ADRS) ▷ compute chain 𝑖 signature value
+        // 𝑠𝑖𝑔[𝑖] ← chain(𝑠𝑘, 0, 𝑚𝑠𝑔[𝑖], PK.seed, ADRS) ▷ compute chain 𝑖 signature value
+        // chain(uint8_t out[SPX_N], ...
+        chain(out[i], sk_seed, 0, msg[i], pk_seed, adrs);
     }
 }
-
