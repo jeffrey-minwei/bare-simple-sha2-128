@@ -30,6 +30,14 @@ typedef unsigned char N_BYTES[SPX_N];  // n bytes
 
 void compress_adrs(uint8_t c[22], const ADRS adrs);
 
+#define WOTS_HASH  0
+#define WOTS_PK    1
+#define TREE       2
+#define FORS_TREE  3
+#define FORS_ROOTS 4
+#define WOTS_PRF   5
+#define FORS_PRF   6
+
 unsigned long long toInt(const unsigned char *pX, unsigned int n);
 
 void toByte(const unsigned long long x, const unsigned int n, unsigned char *pS);
