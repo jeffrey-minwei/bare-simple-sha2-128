@@ -2,6 +2,7 @@
 #include "addr.h"
 #include "uart_min.h"
 #include "wots_plus.h"
+#include "chain.h"
 
 #include <string.h>
 
