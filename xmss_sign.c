@@ -27,20 +27,31 @@ void xmss_sign(N_BYTES out[SPX_XMSS_LEN],
                const unsigned char pk_seed[SPX_N], 
                ADRS adrs)
 {
-    for (int j = 0; j < 9; ++j) // h′=h/d=9
+
+    // h′ = h/d = 9
+    uint8_t auth[9][SPX_N];
+
+    // h′ = h/d = 9
+    for(int j = 0; j < 9; ++j)
     {
         // 𝑘 ← ⌊𝑖𝑑𝑥/2^𝑗⌋ ⊕ 1
+        unsigned int k = (idx >> j) ^ 1u;
+
         // AUTH[𝑗] ← xmss_node(SK.seed, 𝑘, 𝑗, PK.seed, ADRS)
+        xmss_node(auth+j, sk_seed, k, j, pk_seed, adrs);
     }
+
+    // 5: ADRS.setTypeAndClear(WOTS_HASH)
     set_type_and_clear(adrs, WOTS_HASH);
+
     // 6: ADRS.setKeyPairAddress(𝑖𝑑𝑥)
     set_key_pair_addr(adrs, idx);
 
-    N_BYTES sig[SPX_LEN];
-
     // 7: 𝑠𝑖𝑔 ← wots_sign(𝑀, SK.seed, PK.seed, ADRS)
-    wots_sign(sig, M, sk_seed, pk_seed, adrs);
-    memcpy(out, sig, SPX_LEN * N_BYTES);
+    wots_sign(out, M, sk_seed, pk_seed, adrs);
 
-    memcpy(out + SPX_LEN * N_BYTES, AUTH, 9);  // h′=h/d=9
+    // size of sig is len * n bytes
+    // len = 35, for SLH-DSA-SHA2-128s
+    // out ← WOTS+ signature ∥ AUTH
+    memcpy((uint8_t *)(out + 35), (uint8_t *)(auth[0][0]), sizeof(auth));
 }
