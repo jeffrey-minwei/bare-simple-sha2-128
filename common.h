@@ -39,35 +39,5 @@ void toByte(const unsigned long long x, const unsigned int n, unsigned char *pS)
  */
 void prf(const uint8_t pk_seed[SPX_N], const uint8_t sk_seed[SPX_N], const ADRS adrs, uint8_t out[SPX_N]);
 
-/**
- * See https://github.com/sphincs/sphincsplus/blob/master/ref/address.c#L11
- *
- * ADRS = concat(toByte(l, 4), ADRS[4:32])
- * ADRS[4:32] means ADRS[4, 5, ..., 31]
- */
-void set_layer_addr(ADRS adrs, unsigned int layer);
-
-void set_tree_height(ADRS adrs, unsigned long long i);
-
-void set_type_and_clear(ADRS adrs, unsigned int Y);
-
-/**
- * See page 12,13,14, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
- */
-void set_key_pair_addr(ADRS adrs, unsigned long long i);
-
-/**
- * See page 12,14, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
- */
-void set_chain_addr(ADRS adrs, unsigned long long i);
-
-/**
- * See page 14, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
- * ADRS = concat(ADRS[0 ∶ 28], toByte(i, 4))
- */
-void set_hash_addr(ADRS adrs, unsigned long long i);
-
-void set_tree_index(ADRS adrs, unsigned int i);
-
 #endif
 
