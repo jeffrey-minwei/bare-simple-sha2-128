@@ -41,18 +41,26 @@ else ifeq ($(TARGET),nrf52840)
             -ffreestanding -Wall -Wextra \
             -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections \
             -I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include \
-            -I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include
-  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive $(NRFXLIB_DIR)/crypto/nrf_cc310_bl/lib/cortex-m4/soft-float/libnrf_cc310_bl_0.9.12.a -Wl,--no-whole-archive -specs=nano.specs -nostartfiles
+            -I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include \
+            -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
+  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive \
+             -Wl,--no-whole-archive -specs=nano.specs -nostartfiles
   ELF := sign_nrf52840.elf
   NRF_CC_BACKEND := nrf_cc310_mbedcrypto
+  ARCH_DIR   := cortex-m4
+  FLOAT_DIR  := soft-float
   RESC := run_sign.resc
 
 else ifeq ($(TARGET),nrf5340dk)
   PLATFORM := platforms/nrf5340dk
   STARTUP := $(PLATFORM)/startup.c
   LDS  := $(PLATFORM)/linker.ld
-  CFLAGS := -mcpu=cortex-m33 -mthumb -O2 -ffreestanding -Wall -Wextra -Wl,--gc-sections
+  CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
+            -ffreestanding -Wall -Wextra -Wl,--gc-sections  \
+            -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340dk.map -specs=nano.specs -nostartfiles
+  ARCH_DIR   := cortex-m33+nodsp
+  FLOAT_DIR  := soft-float
   ELF := sign_nrf5340dk.elf
   NRF_CC_BACKEND := nrf_cc312_mbedcrypto
   RESC := ./ci/renode/run_sign_nrf5340dk.resc
@@ -103,11 +111,13 @@ else
 
 endif
 
+OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
+
 all: sign.elf
 
 sign.elf:  $(LDS) $(OBJS) $(RNG_OBJS)
 	@echo "==> start building with $(CC), output should be $(ELF)"
-	$(CC) $(CFLAGS) $(SRCS) -v $(LDFLAGS) -o $(ELF)
+	$(CC) $(CFLAGS) $(SRCS) -v $(OBERON_LIB) $(LDFLAGS) -o $(ELF)
 # check memcpy has real implementation
 	$(NM) $(ELF) | grep -E 'memcpy|__aeabi_memcpy'
 
