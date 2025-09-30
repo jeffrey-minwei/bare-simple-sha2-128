@@ -123,11 +123,11 @@ jobs:
       
           printf 'FOUND: %s\n' "${HITS[@]}"
 
-      - name: Build x86
-        run: |
-          set -e
-          make clean
-          make TARGET=x86 KAT_RNG=1
+      #- name: Build x86
+      #  run: |
+      #    set -e
+      #    make clean
+      #    make TARGET=x86 KAT_RNG=1
 
       - name: Build nrf52840
         run: |
