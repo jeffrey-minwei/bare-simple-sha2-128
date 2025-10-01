@@ -10,34 +10,20 @@
 // 你專案裡的參數
 // SPX_N, SPX_SK_BYTES, SPX_PK_BYTES, SPX_BYTES, SPX_FULL_HEIGHT, SPX_D, SPX_FORS_MSG_BYTES
 
-// 我先給：PRF_msg 與 H_msg（可直接用）
 static void prf_msg(uint8_t R[SPX_N],
                     const uint8_t sk_prf[SPX_N],
                     const uint8_t optrand[SPX_N],
-                    const uint8_t *m, size_t mlen)
+                    const uint8_t *m, 
+                    size_t mlen)
 {
-    // R = SHA256(tag=0x01 || SK_PRF || optrand || M) 取前 N bytes
-    uint8_t h[32];
-    uint8_t tag = 0x01;
-    // 拼一個小 buffer（不alloc）
-    // 先 hash(SK_PRF || optrand || M)，再把 tag 摻進去一次，避免碰撞
-    sha256(sk_prf, SPX_N, h);
-    uint8_t buf1[SPX_N + SPX_N + 32];
-    memcpy(buf1, optrand, SPX_N);
-    memcpy(buf1+SPX_N, h, 32);
-    sha256(buf1, SPX_N+32, h);
-    // 再把 M 混入
-    uint8_t buf2[1 + 32 + 0]; (void)buf2;
-    // 直接一次 hash(tag || prev || M)
-    // 為了省 RAM，分兩段做：先 tag||prev，再跟 M 串起來 hash
-    uint8_t tprev[1+32]; tprev[0]=tag; memcpy(tprev+1, h, 32);
-    uint8_t hh[32];
-    sha256(m, mlen, hh);
-    uint8_t final_in[1+32+32];
-    memcpy(final_in, tprev, 1+32);
-    memcpy(final_in+1+32, hh, 32);
-    sha256(final_in, sizeof(final_in), h);
-    memcpy(R, h, SPX_N);
+    uint8_t opt_rand_M[SPX_N + mlen];
+    memcpy(opt_rand_M, optrand, SPX_N);
+    memcpy(opt_rand_M + SPX_N, m, mlen);
+
+    uint8_t hmac_sha256_out[32];
+    hmac_sha256(hmac_sha256_out, sk_prf, SPX_N, opt_rand_M, sizeof(opt_rand_M));
+
+    memcpy(R, hmac_sha256_out, SPX_N);
 }
 
 static void h_msg(uint8_t mhash[SPX_FORS_MSG_BYTES],
@@ -161,4 +147,5 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
 
     // 你可以在這裡（debug）檢查 p-sig_out 是否等於 SPX_BYTES
     return 0;
+
 }
