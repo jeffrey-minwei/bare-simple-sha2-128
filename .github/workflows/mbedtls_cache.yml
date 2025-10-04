@@ -1,27 +1,28 @@
 name: mbedtls_cache_impl
 on:
   workflow_call:
-    outputs:
-      cache_key:
-        description: "The mbedtls cache key"
-        value: ${{ jobs.cache_job.outputs.cache_key }}
-      cache_hit:
-        description: "true if cache hit"
-        value: ${{ jobs.cache_job.outputs.cache_hit }}
 
 jobs:
   cache_job:
     runs-on: ubuntu-latest
-    outputs:
-      cache_key: mbedtls-${{ steps.mbed.outputs.sha }}
-      cache_hit: ${{ steps.c.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v4
         with: { submodules: false, fetch-depth: 0 }
 
       - name: resolve
         id: mbed
-        run: bash -Eeuo pipefail ci/mbedtls/mbedtls_cache.sh resolve
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          if git ls-tree -r --name-only HEAD | grep -qx "third_party/mbedtls"; then
+            MODE=submodule
+            SHA="$(git ls-tree HEAD third_party/mbedtls | awk '{print $3}')"
+          else
+            MODE=remote
+            SHA="$(git ls-remote https://github.com/Mbed-TLS/mbedtls HEAD | awk '{print $1}')"
+          fi
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA"   >> "$GITHUB_OUTPUT"
 
       - name: cache
         id: c
@@ -32,13 +33,20 @@ jobs:
 
       - name: prepare
         if: steps.c.outputs.cache-hit != 'true'
+        shell: bash
         env:
           MODE: ${{ steps.mbed.outputs.mode }}
           SHA:  ${{ steps.mbed.outputs.sha }}
-        run: bash ci/mbedtls/mbedtls_cache.sh prepare
-
-      - name: summary
         run: |
-          echo "### mbedtls cache" >> $GITHUB_STEP_SUMMARY
-          echo "- key: \`mbedtls-${{ steps.mbed.outputs.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- hit: \`${{ steps.c.outputs['cache-hit'] || 'false' }}\`" >> $GITHUB_STEP_SUMMARY
+          set -Eeuo pipefail
+          if [[ "$MODE" == "submodule" ]]; then
+            git submodule update --init --depth=1 third_party/mbedtls
+            git -C third_party/mbedtls -c advice.detachedHead=false fetch --depth=1 origin "$SHA"
+            git -C third_party/mbedtls -c advice.detachedHead=false checkout -q "$SHA"
+          else
+            rm -rf third_party/mbedtls
+            git init third_party/mbedtls
+            git -C third_party/mbedtls remote add origin https://github.com/Mbed-TLS/mbedtls
+            git -C third_party/mbedtls -c advice.detachedHead=false fetch --depth=1 origin "$SHA"
+            git -C third_party/mbedtls -c advice.detachedHead=false checkout -q "$SHA"
+          fi
