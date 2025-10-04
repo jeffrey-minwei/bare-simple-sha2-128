@@ -1,0 +1,44 @@
+name: mbedtls_cache_impl
+on:
+  workflow_call:
+    outputs:
+      cache_key:
+        description: "The mbedtls cache key"
+        value: ${{ jobs.cache_job.outputs.cache_key }}
+      cache_hit:
+        description: "true if cache hit"
+        value: ${{ jobs.cache_job.outputs.cache_hit }}
+
+jobs:
+  cache_job:
+    runs-on: ubuntu-latest
+    outputs:
+      cache_key: mbedtls-${{ steps.mbed.outputs.sha }}
+      cache_hit: ${{ steps.c.outputs.cache-hit }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: false, fetch-depth: 0 }
+
+      - name: resolve
+        id: mbed
+        run: bash ci/mbedtls/mbedtls_cache.sh resolve
+
+      - name: cache
+        id: c
+        uses: actions/cache@v4
+        with:
+          path: third_party/mbedtls
+          key: mbedtls-${{ steps.mbed.outputs.sha }}
+
+      - name: prepare
+        if: steps.c.outputs.cache-hit != 'true'
+        env:
+          MODE: ${{ steps.mbed.outputs.mode }}
+          SHA:  ${{ steps.mbed.outputs.sha }}
+        run: bash ci/mbedtls/mbedtls_cache.sh prepare
+
+      - name: summary
+        run: |
+          echo "### mbedtls cache" >> $GITHUB_STEP_SUMMARY
+          echo "- key: \`mbedtls-${{ steps.mbed.outputs.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- hit: \`${{ steps.c.outputs['cache-hit'] || 'false' }}\`" >> $GITHUB_STEP_SUMMARY

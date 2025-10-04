@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
 
 jobs:
+  mbedtls-cache:
+    uses: ./.github/workflows/mbedtls_cache.yml
+
   build-and-test:
     runs-on: ubuntu-latest
     env:
