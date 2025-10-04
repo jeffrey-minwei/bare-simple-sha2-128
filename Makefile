@@ -79,9 +79,6 @@ vpath sha256.c platforms
 ifeq ($(KAT_RNG),1)
   RNG_SRC := kat/rng.c kat/kat_rng.c kat/aes256.c
   CFLAGS  += -DKAT_RNG
-else
-  #RNG_SRC := $(PLATFORM)/rng.c
-  RNG_SRC := platforms/mbedtls/rng.c
 endif
 
 LDFLAGS += -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
@@ -93,12 +90,6 @@ CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
 endif
 
 SRCS := $(STARTUP) $(RNG_SRC) main.c keygen.c $(SHA256) uart_min.c slh_dsa_sign.c base_2b.c addr_compressed.c addr.c common.c fors_sk_gen.c thf.c fors_sign.c chain.c
-
-CFLAGS += -DMBEDTLS_PSA_CRYPTO_C \
-          -DMBEDTLS_ENTROPY_C \
-          -DMBEDTLS_CTR_DRBG_C \
-          -DMBEDTLS_NO_PLATFORM_ENTROPY \
-          -DMBEDTLS_ENTROPY_HARDWARE_ALT
 
 RENODE_IMG = renode_pinned:cached
 
@@ -122,7 +113,18 @@ endif
 
 OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
 
-LDFLAGS += -Lthird_party/mbedtls/library -Wl,--start-group -lmbedtls -lmbedx509 -lmbedcrypto -Wl,--end-group
+ifeq ($(MBEDTLS),0)
+  # not use mbedtls
+else
+  # default use mbedtls
+ CFLAGS += -DMBEDTLS_PSA_CRYPTO_C \
+           -DMBEDTLS_ENTROPY_C \
+           -DMBEDTLS_CTR_DRBG_C \
+           -DMBEDTLS_NO_PLATFORM_ENTROPY \
+           -DMBEDTLS_ENTROPY_HARDWARE_ALT
+
+  LDFLAGS += -Lthird_party/mbedtls/library -Wl,--start-group -lmbedtls -lmbedx509 -lmbedcrypto -Wl,--end-group
+endif
 
 all: sign.elf
 

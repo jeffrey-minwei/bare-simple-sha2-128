@@ -1,5 +1,5 @@
 #include "common.h"
-#include "hal_rng.h"
+#include "psa/crypto.h"
 #include "uart_min.h"
 
 #include <stddef.h>
@@ -25,14 +25,8 @@ void test_hmac_sha256()
     uint8_t sk_seed[SPX_N];
     uint8_t pk_seed[SPX_N];
 
-    unsigned char entropy_input[48];
-    for (int i=0; i<48; i++) {
-        entropy_input[i] = i;
-    }
-
-    rng_init(entropy_input, NULL, 256);
-    rng_bytes(sk_seed, SPX_N);
-    rng_bytes(pk_seed, SPX_N);
+    psa_generate_random(sk_seed, SPX_N);
+    psa_generate_random(pk_seed, SPX_N);
 
     uint8_t hmac_sha256_out[32];
     hmac_sha256(hmac_sha256_out, sk_seed, SPX_N, "abc", 3);
@@ -55,14 +49,8 @@ static void test_rng()
     uint8_t sk_seed[SPX_N];
     uint8_t pk_seed[SPX_N];
 
-    unsigned char entropy_input[48];
-    for (int i=0; i<48; i++) {
-        entropy_input[i] = i;
-    }
-
-    rng_init(entropy_input, NULL, 256);
-    rng_bytes(sk_seed, SPX_N);
-    rng_bytes(pk_seed, SPX_N);
+    psa_generate_random(sk_seed, SPX_N);
+    psa_generate_random(pk_seed, SPX_N);
     
     uarte0_hex("pk_seed", pk_seed, SPX_N);
 

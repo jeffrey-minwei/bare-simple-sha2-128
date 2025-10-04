@@ -2,6 +2,7 @@
 
 #include "uart_min.h"
 #include "common.h"
+#include "psa/crypto.h"
 #include "keygen.h"
 #include "sha256.h"
 #include "slh_dsa_sign.h"
@@ -64,6 +65,11 @@ int main(void)
     uarte0_init();
     // test uart
     uarte0_tx(msg, sizeof(msg) - 1);
+
+    psa_status_t status = psa_crypto_init();
+    if (status != PSA_SUCCESS) { 
+        uarte0_puts("psa_crypto_init fail");
+    }
 
     test_sha256();
     test_common();

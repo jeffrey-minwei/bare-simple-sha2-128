@@ -1,16 +1,23 @@
 #include "rng.h"
 
-#include "../hal_rng.h"
+#include "../psa/crypto.h"
 
 #ifndef KAT_RNG
 #error "kat_rng.c should only be compiled when -DKAT_RNG is defined (test-only)."
 #endif
 
-void rng_init(const uint8_t *entropy, const uint8_t *pers, size_t L) {
-    (void)L;
-    randombytes_init((unsigned char*)entropy, (unsigned char*)pers, 256);
+psa_status_t psa_crypto_init() {
+    unsigned char       entropy_input[48];
+
+    for (int i=0; i<48; i++) {
+        entropy_input[i] = i;
+    }
+
+    unsigned char *personalization_string = NULL;
+    randombytes_init(entropy_input, personalization_string, 256);
+    return PSA_SUCCESS;
 }
 
-void rng_bytes(uint8_t *out, size_t len) {
-    randombytes((unsigned char*)out, (unsigned long long)len);
+psa_status_t psa_generate_random(uint8_t *output, size_t output_size) {
+    return randombytes((unsigned char*)output, (unsigned long long)output_size);
 }
