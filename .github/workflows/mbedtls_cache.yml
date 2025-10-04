@@ -21,7 +21,7 @@ jobs:
 
       - name: resolve
         id: mbed
-        run: bash ci/mbedtls/mbedtls_cache.sh resolve
+        run: bash -Eeuo pipefail ci/mbedtls/mbedtls_cache.sh resolve
 
       - name: cache
         id: c
