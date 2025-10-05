@@ -71,6 +71,20 @@ int main(void)
         uarte0_puts("psa_crypto_init fail");
     }
 
+    uint8_t sk_seed[SPX_N];
+    uint8_t pk_seed[SPX_N];
+
+    psa_status_t st_sk_seed = psa_generate_random(sk_seed, SPX_N);
+    if (st_sk_seed != PSA_SUCCESS) {
+        for(;;);  // 失敗停在這裡
+    }
+
+    psa_status_t st_pk_seed = psa_generate_random(pk_seed, SPX_N);
+    if (st_pk_seed != PSA_SUCCESS) {
+        for(;;);  // 失敗停在這裡
+    }    
+    uarte0_puts("sk and pk generate seed success");
+
     test_sha256();
     test_common();
 
@@ -95,10 +109,7 @@ int main(void)
     // 呼叫 set_real_root 計算 root 並回寫到 sk/pk
     set_real_root(sk, pk, real_root, leaf, 0, auth_path, SPX_TREE_HEIGHT, pub_seed);
 
-    // 輸出結果
-    uarte0_hex("sk",   sk,   SPX_SK_BYTES);
     uarte0_hex("pk",   pk,   SPX_PK_BYTES);
-    uarte0_hex("real_root", real_root, SPX_N);
 
     uint8_t log[] = "set_real_root DONE\r\n";
     uarte0_tx(log, sizeof(log) - 1);
