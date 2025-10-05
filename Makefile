@@ -84,19 +84,24 @@ ifeq ($(MBEDTLS),0)
   # not use mbedtls
 else
   # default use mbedtls
- CFLAGS += -DMBEDTLS_PSA_CRYPTO_C \
-           -DMBEDTLS_ENTROPY_C \
-           -DMBEDTLS_CTR_DRBG_C \
-           -DMBEDTLS_NO_PLATFORM_ENTROPY \
-           -DMBEDTLS_ENTROPY_HARDWARE_ALT \
-           -DMBEDTLS_PSA_CRYPTO_CONFIG \
-           -DPSA_WANT_ALG_SHA_256=1
+  CFLAGS += -DMBEDTLS_PSA_CRYPTO_C \
+            -DMBEDTLS_ENTROPY_C \
+            -DMBEDTLS_CTR_DRBG_C \
+            -DMBEDTLS_NO_PLATFORM_ENTROPY \
+            -DMBEDTLS_ENTROPY_HARDWARE_ALT \
+            -DMBEDTLS_PSA_CRYPTO_CONFIG \
+            -DPSA_WANT_ALG_SHA_256=1
 
-  LDFLAGS += -Lthird_party/mbedtls/library -Wl,--start-group -lmbedtls -lmbedx509 -lmbedcrypto -Wl,--end-group
+  LDFLAGS += -Lthird_party/mbedtls/library \
+              -Wl,--start-group \
+                -Wl,--whole-archive \
+                   -lmbedtls -lmbedx509 -lmbedcrypto  \
+                -Wl,--no-whole-archive \
+              -Wl,--end-group
 endif
 
 LDFLAGS += -T $(LDS) -Wl,-Map,sign_$(TARGET).map \
-           -lc_nano -lgcc -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
+           -lc_nano -lgcc -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy -Wl,--icf=none
 
 NM ?= $(shell $(CC) -print-prog-name=nm)
 
