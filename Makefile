@@ -45,7 +45,7 @@ else ifeq ($(TARGET),nrf52840)
             -I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include \
             -I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include \
             -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
-  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive
+  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map
   ELF := sign_nrf52840.elf
   # NRF_CC_BACKEND := nrf_cc310_mbedcrypto
   ARCH_DIR   := cortex-m4
@@ -59,7 +59,7 @@ else ifeq ($(TARGET),nrf5340dk)
   CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra -Wl,--gc-sections  \
             -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
-  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340dk.map -Wl,--whole-archive
+  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340dk.map
   ARCH_DIR   := cortex-m33+nodsp
   FLOAT_DIR  := soft-float
   ELF := sign_nrf5340dk.elf
