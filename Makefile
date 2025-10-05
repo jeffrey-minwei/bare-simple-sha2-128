@@ -1,4 +1,4 @@
-override export KAT := 0
+override export KAT_RNG := 0
 
 .DEFAULT_GOAL := all
 .PHONY: all
@@ -110,6 +110,8 @@ else
   $(info RNG_OBJS = $(RNG_OBJS))
 
 endif
+
+$(info KAT_RNG = $(KAT_RNG))
 
 OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
 
