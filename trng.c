@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <string.h>
+#include <stdint.h>
 
 static const uint8_t entropy_input[32] = {
     0x15,0x2B,0x7E,0xC3,0xA1,0x9D,0x1F,0x63,
