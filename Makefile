@@ -88,7 +88,7 @@ OBJS := addr_compressed.o thf.o common.o addr.o  \
         chain.o base_2b.o uart_min.o \
         keygen.o sha256.o slh_dsa_sign.o trng.o \
         psa_crypto.o rng.o aes256.o \
-        wots_plus.o xmss_sign.o
+        wots_plus.o xmss_sign.o fors_sign.o
 
 RENODE_IMG = renode_pinned:cached
 
