@@ -95,3 +95,9 @@ PROVIDE( _edata  = _edata );
 PROVIDE( _sbss   = _sbss );
 PROVIDE( _ebss   = _ebss );
 PROVIDE( _estack = __StackTop );
+
+. = ALIGN(8);
+_end = .;
+end = .;
+__end__ = .;
+__HeapBase = .;

@@ -66,3 +66,9 @@ SECTIONS
   _end = .;  PROVIDE(__end = _end);
   PROVIDE(end = _end);
 }
+
+. = ALIGN(8);
+_end = .;
+end = .;
+__end__ = .;
+__HeapBase = .;
