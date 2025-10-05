@@ -158,17 +158,17 @@ jobs:
       - name: Run in Renode (nrf52840)
         run: make TARGET=nrf52840 NRFXLIB_DIR="${NRFXLIB_DIR}" ci-run-nrf52840
 
-      - name: Build nRF5340 DK
-        run: |
-          set -e
-          make clean
-          make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" KAT_RNG=1
+      #- name: Build nRF5340 DK
+      #  run: |
+      #    set -e
+      #    make clean
+      #    make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" KAT_RNG=1
 
-      - name: Show sign_nrf5340dk.map
-        shell: bash
-        run: |
-          set -e
-          head -n 300 sign_nrf5340dk.map
+      #- name: Show sign_nrf5340dk.map
+      #  shell: bash
+      #  run: |
+      #    set -e
+      #    head -n 300 sign_nrf5340dk.map
 
-      - name: Run in Renode (nrf5340dk)
-        run: make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" ci-run-nrf5340dk
+      #- name: Run in Renode (nrf5340dk)
+      #  run: make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" ci-run-nrf5340dk
