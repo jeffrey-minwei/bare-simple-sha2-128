@@ -127,7 +127,7 @@ else
   LDFLAGS += -Lthird_party/mbedtls/library -Wl,--start-group -lmbedtls -lmbedx509 -lmbedcrypto -Wl,--end-group
 endif
 
-LDFLAGS += -specs=nano.specs -nostartfiles
+LDFLAGS += -specs=nano.specs -specs=nosys.specs -nostartfiles 
 
 all: sign.elf
 

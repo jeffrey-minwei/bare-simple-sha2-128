@@ -70,6 +70,8 @@ SECTIONS
     *(COMMON)
     . = ALIGN(4);
     _ebss = .;
+    _end = .;
+    PROVIDE(end = _end);
   } > RAM
 
   /* Heap */
