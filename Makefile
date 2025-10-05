@@ -45,8 +45,6 @@ else ifeq ($(TARGET),nrf52840)
             -I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include \
             -I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include \
             -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
-  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive \
-             -Wl,--no-whole-archive -specs=nano.specs -nostartfiles
   ELF := sign_nrf52840.elf
   # NRF_CC_BACKEND := nrf_cc310_mbedcrypto
   ARCH_DIR   := cortex-m4
@@ -60,7 +58,6 @@ else ifeq ($(TARGET),nrf5340dk)
   CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra -Wl,--gc-sections  \
             -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
-  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340dk.map -specs=nano.specs -nostartfiles
   ARCH_DIR   := cortex-m33+nodsp
   FLOAT_DIR  := soft-float
   ELF := sign_nrf5340dk.elf
@@ -81,6 +78,8 @@ ifeq ($(KAT_RNG),1)
   CFLAGS  += -DKAT_RNG
 endif
 
+LDFLAGS := -specs=nano.specs -specs=nosys.specs 
+
 ifeq ($(MBEDTLS),0)
   # not use mbedtls
 else
@@ -96,7 +95,8 @@ else
   LDFLAGS += -Lthird_party/mbedtls/library -Wl,--start-group -lmbedtls -lmbedx509 -lmbedcrypto -Wl,--end-group
 endif
 
-LDFLAGS += -Wl,--start-group -lc_nano -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
+LDFLAGS += -T $(LDS) -Wl,-Map,sign_$(TARGET).map \
+           -lc_nano -lgcc -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
 
 NM ?= $(shell $(CC) -print-prog-name=nm)
 
