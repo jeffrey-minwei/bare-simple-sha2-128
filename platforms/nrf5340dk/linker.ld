@@ -71,6 +71,9 @@ SECTIONS
     . = ALIGN(4);
     _ebss = .;
   } > RAM
+  /* for _sbrk */
+  _end = .;  PROVIDE(__end = _end);
+  PROVIDE(end = _end);
 
   /* Heap */
   .heap (NOLOAD) :

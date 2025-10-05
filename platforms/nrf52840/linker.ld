@@ -62,7 +62,7 @@ SECTIONS
     . = ALIGN(4);
     _ebss = .;
   } > RAM
-
-  /* End of RAM-used sections: heap base for _sbrk if needed */
+  /* for _sbrk */
   _end = .;  PROVIDE(__end = _end);
+  PROVIDE(end = _end);
 }
