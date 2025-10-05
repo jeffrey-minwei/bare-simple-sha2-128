@@ -77,16 +77,19 @@ int main(void)
 
     psa_status_t st_sk_seed = psa_generate_random(sk_seed, SPX_N);
     if (st_sk_seed != PSA_SUCCESS) {
+        uarte0_puts("psa_generate_random sk_seed fail");
         for(;;);  // 失敗停在這裡
     }
 
     psa_status_t st_pk_seed = psa_generate_random(pk_seed, SPX_N);
     if (st_pk_seed != PSA_SUCCESS) {
+        uarte0_puts("psa_generate_random pk_seed fail");
         for(;;);  // 失敗停在這裡
     }
 
     psa_status_t st_sk_prf = psa_generate_random(sk_prf, SPX_N);
     if (st_sk_prf != PSA_SUCCESS) {
+        uarte0_puts("psa_generate_random sk.prf fail");
         for(;;);  // 失敗停在這裡
     }
     // Both SK.seed and SK.prf shall be generated using an approved random bit generator
