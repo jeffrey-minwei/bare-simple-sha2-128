@@ -73,6 +73,7 @@ int main(void)
 
     uint8_t sk_seed[SPX_N];
     uint8_t pk_seed[SPX_N];
+    uint8_t sk_prf[SPX_N];
 
     psa_status_t st_sk_seed = psa_generate_random(sk_seed, SPX_N);
     if (st_sk_seed != PSA_SUCCESS) {
@@ -82,8 +83,14 @@ int main(void)
     psa_status_t st_pk_seed = psa_generate_random(pk_seed, SPX_N);
     if (st_pk_seed != PSA_SUCCESS) {
         for(;;);  // 失敗停在這裡
-    }    
-    uarte0_puts("sk and pk generate seed success");
+    }
+
+    psa_status_t st_sk_prf = psa_generate_random(sk_prf, SPX_N);
+    if (st_sk_prf != PSA_SUCCESS) {
+        for(;;);  // 失敗停在這裡
+    }
+    // Both SK.seed and SK.prf shall be generated using an approved random bit generator
+    uarte0_puts("sk_seed, pk_seed and sk_prf generate success\n");
 
     test_sha256();
     test_common();
