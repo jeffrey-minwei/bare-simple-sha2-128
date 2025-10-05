@@ -70,9 +70,10 @@ SECTIONS
     *(COMMON)
     . = ALIGN(4);
     _ebss = .;
-    _end = .;
-    PROVIDE(end = _end);
   } > RAM
+  /* for _sbrk */
+  _end = .;  PROVIDE(__end = _end);
+  PROVIDE(end = _end);
 
   /* Heap */
   .heap (NOLOAD) :
