@@ -34,9 +34,9 @@ psa_status_t psa_generate_random(uint8_t *output, size_t output_size);
 /**
  * See https://arm-software.github.io/psa-api/crypto/1.1/api/ops/hashes.html#c.psa_hash_compute
  */
-psa_status_t psa_hash_compute(psa_algorithm_t alg,
-                              const uint8_t * input,
-                              size_t input_length,
-                              uint8_t * hash,
-                              size_t hash_size,
-                              size_t * hash_length);
+//psa_status_t psa_hash_compute(psa_algorithm_t alg,
+//                              const uint8_t * input,
+//                             size_t input_length,
+//                              uint8_t * hash,
+//                              size_t hash_size,
+//                              size_t * hash_length);
