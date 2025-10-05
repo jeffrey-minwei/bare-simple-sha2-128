@@ -101,7 +101,7 @@ else
 endif
 
 LDFLAGS += -T $(LDS) -Wl,-Map,sign_$(TARGET).map \
-           -lc_nano -lgcc -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy -Wl,--icf=none
+           -lc_nano -lgcc -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
 
 NM ?= $(shell $(CC) -print-prog-name=nm)
 
