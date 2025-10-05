@@ -56,6 +56,7 @@ else ifeq ($(TARGET),nrf52840)
   ARCH_DIR   := cortex-m4
   FLOAT_DIR  := soft-float
   RESC := run_sign.resc
+  MAP_FILE := sign_nrf52840.map
 
 else ifeq ($(TARGET),nrf5340dk)
   PLATFORM := platforms/nrf5340dk
@@ -69,6 +70,7 @@ else ifeq ($(TARGET),nrf5340dk)
   FLOAT_DIR  := soft-float
   ELF := sign_nrf5340dk.elf
   RESC := ./ci/renode/run_sign_nrf5340dk.resc
+  MAP_FILE := sign_nrf5340dk.map
 
 endif
 
