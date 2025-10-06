@@ -65,17 +65,6 @@ jobs:
       - name: Show Renode version
         run: ./renode_portable/renode --version
 
-      - name: assert & list mbedtls static libs
-        shell: bash
-        run: |
-          set -e
-          d=third_party/mbedtls/library
-          for f in libmbedcrypto.a libmbedtls.a libmbedx509.a; do
-            [ -f "$d/$f" ] || { echo "MISSING: $d/$f"; exit 1; }
-          done
-          echo "OK: all required libs exist"
-          ls -l "$d"/*.a || true
-
       - name: Cache nrfxlib
         id: cache-nrfxlib
         uses: actions/cache@v4
@@ -97,6 +86,17 @@ jobs:
 
       - name: mbedtls libs (cache+build) mbedtls-2.28-use-hardcode-entropy
         uses: ./.github/actions/mbedtls-lib-mbedtls-2.28-use-hardcode-entropy
+
+      - name: assert & list mbedtls static libs
+        shell: bash
+        run: |
+          set -e
+          d=third_party/mbedtls/library
+          for f in libmbedcrypto.a libmbedtls.a libmbedx509.a; do
+            [ -f "$d/$f" ] || { echo "MISSING: $d/$f"; exit 1; }
+          done
+          echo "OK: all required libs exist"
+          ls -l "$d"/*.a || true
 
       - name: Locate nrf_cc310_bl static libs (soft-float only)
         run: |
