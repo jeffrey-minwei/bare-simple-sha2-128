@@ -65,9 +65,6 @@ jobs:
       - name: Show Renode version
         run: ./renode_portable/renode --version
 
-      - name: mbedtls libs (cache+build)
-        uses: ./.github/actions/mbedtls-lib-v2_28_8
-
       - name: assert & list mbedtls static libs
         shell: bash
         run: |
