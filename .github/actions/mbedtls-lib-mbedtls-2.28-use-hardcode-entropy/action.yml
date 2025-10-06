@@ -1,5 +1,5 @@
-name: "mbedtls libs v2.28.8 (cache+build)"
-description: "Restore/build/save third_party/mbedtls/library for v2.28.8"
+name: "mbedtls libs mbedtls-2.28-use-hardcode-entropy (cache+build)"
+description: "Restore/build/save third_party/mbedtls/library for mbedtls-2.28-use-hardcode-entropy"
 runs:
   using: "composite"
   steps:
@@ -8,7 +8,7 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: third_party/mbedtls/library
-        key: mbedtls-v2.28.8
+        key: mbedtls-2.28-use-hardcode-entropy
 
     - name: prepare third_party/mbedtls/library (build if needed)
       shell: bash
@@ -23,15 +23,15 @@ runs:
           echo "✓ cache hit: all libs present"; exit 0
         fi
 
-        echo "→ cache miss: build mbedtls v2.28.8"
+        echo "→ cache miss: build mbedtls mbedtls-2.28-use-hardcode-entropy"
         if ! command -v arm-none-eabi-gcc >/dev/null; then
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends gcc-arm-none-eabi binutils-arm-none-eabi make
         fi
 
         rm -rf third_party/mbedtls
-        git clone --depth=1 --branch v2.28.8 --single-branch \
-          https://github.com/Mbed-TLS/mbedtls third_party/mbedtls
+        git clone --depth=1 --branch mbedtls-2.28-use-hardcode-entropy --single-branch \
+          https://github.com/jeffrey-minwei/mbedtls third_party/mbedtls
 
         sed -ri 's/^(\s*)#define\s+MBEDTLS_FS_IO/\1\/\/ #define MBEDTLS_FS_IO/' third_party/mbedtls/include/mbedtls/config.h
         sed -ri 's/^(\s*)#define\s+MBEDTLS_HAVE_TIME_DATE/\1\/\/ #define MBEDTLS_HAVE_TIME_DATE/' third_party/mbedtls/include/mbedtls/config.h
@@ -53,4 +53,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: third_party/mbedtls/library
-        key: mbedtls-v2.28.8
+        key: mbedtls-2.28-use-hardcode-entropy
