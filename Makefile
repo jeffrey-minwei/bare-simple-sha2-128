@@ -113,8 +113,8 @@ endif
 OBJS := addr_compressed.o thf.o common.o addr.o  \
         chain.o base_2b.o uart_min.o \
         keygen.o sha256.o slh_dsa_sign.o trng.o \
-        wots_plus.o xmss_sign.o fors_sign.o
-        #psa_crypto.o rng.o aes256.o 
+        wots_plus.o xmss_sign.o fors_sign.o \
+        psa_crypto.o rng.o aes256.o 
 
 RENODE_IMG = renode_pinned:cached
 
@@ -122,28 +122,28 @@ WORKDIR     ?= $(shell pwd)
 
 #RNG_OBJS := $(RNG_SRC:.c=.o)
 
-#aes256.o: kat/aes256.c
-#	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $< -o $@  
+aes256.o: kat/aes256.c
+	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $< -o $@  
 
-#rng.o: kat/rng.c
-#	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $< -o $@  
+rng.o: kat/rng.c
+	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $< -o $@  
 
-#psa_crypto.o: library/psa_crypto.c
-#	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $< -o $@
+psa_crypto.o: library/psa_crypto.c
+	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $< -o $@
 
 OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
 
-LDFLAGS := -specs=nosys.specs -specs=nano.specs \
-           -Wl,--gc-sections \
-           -T $(LDS) -Wl,-Map,$(MAP_FILE) \
-           -Wl,--start-group -lc_nano -lgcc -lm -Wl,--end-group \
-           -Lthird_party/mbedtls/library \
-              -Wl,--start-group \
-                -Wl,--whole-archive \
-                   -lmbedtls -lmbedx509 -lmbedcrypto  \
-                -Wl,--no-whole-archive \
-              -Wl,--end-group \
-              -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
+#LDFLAGS := -specs=nosys.specs -specs=nano.specs \
+    #       -Wl,--gc-sections \
+    #       -T $(LDS) -Wl,-Map,$(MAP_FILE) \
+    #       -Wl,--start-group -lc_nano -lgcc -lm -Wl,--end-group \
+    #       -Lthird_party/mbedtls/library \
+    #          -Wl,--start-group \
+    #            -Wl,--whole-archive \
+    #               -lmbedtls -lmbedx509 -lmbedcrypto  \
+    #            -Wl,--no-whole-archive \
+    #          -Wl,--end-group \
+    #          -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
 
 %.o: %.c
 	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $^ -o $@
