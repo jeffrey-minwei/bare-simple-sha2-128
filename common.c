@@ -1,5 +1,5 @@
 #include "common.h"
-#include "psa/crypto.h"
+#include <psa/crypto.h>
 #include "uart_min.h"
 
 #include <stddef.h>
