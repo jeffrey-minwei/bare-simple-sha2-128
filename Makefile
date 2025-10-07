@@ -139,12 +139,6 @@ LDFLAGS := -specs=nosys.specs -specs=nano.specs -Wl,-u,memcpy -Wl,-u,__aeabi_mem
            -Wl,--gc-sections \
            -T $(LDS) -Wl,-Map,$(MAP_FILE) \
            -Wl,--start-group -lc_nano -lgcc -lm -Wl,--end-group 
-    #       -Lthird_party/mbedtls/library \
-    #          -Wl,--start-group \
-    #            -Wl,--whole-archive \
-    #               -lmbedtls -lmbedx509 -lmbedcrypto  \
-    #            -Wl,--no-whole-archive \
-    #          -Wl,--end-group 
 
 %.o: %.c
 	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $^ -o $@
