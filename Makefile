@@ -171,7 +171,7 @@ sha256.o: platforms/sha256.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 sign.elf:  $(LDS) $(OBJS) $(RNG_OBJS) $(PSA_CRYPTO_OBJS)
-	$(CC) $(ARCHFLAGS) main.c $(STARTUP) $(OBJS) $(RNG_OBJS) $(PSA_CRYPTO_OBJS) -v $(OBERON_LIB) $(LDFLAGS) $(LIBDIRS) -o $(ELF)
+	$(CC) $(ARCHFLAGS) -Ithird_party/mbedtls/include main.c $(STARTUP) $(OBJS) $(RNG_OBJS) $(PSA_CRYPTO_OBJS) -v $(OBERON_LIB) $(LDFLAGS) $(LIBDIRS) -o $(ELF)
 	$(NM) $(ELF) | grep -E 'memcpy|__aeabi_memcpy'
 
 clean:
