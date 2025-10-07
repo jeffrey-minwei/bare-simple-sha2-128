@@ -1,0 +1,36 @@
+name: Add mbedtls submodule
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "mbedtls tag/branch/SHA"
+        required: false
+        default: "v2.28.8"
+
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: add submodule & push branch
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          BR="ci/add-mbedtls-$(date +%Y%m%d-%H%M%S)"
+          git switch -c "$BR"
+          rm -rf third_party/mbedtls
+          git submodule add https://github.com/Mbed-TLS/mbedtls.git third_party/mbedtls
+          if [ -n "${{ github.event.inputs.ref }}" ]; then
+            cd third_party/mbedtls
+            git fetch --tags --all
+            git checkout "${{ github.event.inputs.ref }}" || true
+            cd -
+          fi
+          git add .gitmodules third_party/mbedtls
+          git commit -m "Add mbedtls submodule (pin: ${{ github.event.inputs.ref }})"
+          git push -u origin "$BR"
