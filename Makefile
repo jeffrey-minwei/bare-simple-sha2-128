@@ -135,7 +135,7 @@ psa_crypto.o: library/psa_crypto.c
 
 OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
 
-#LDFLAGS := -specs=nosys.specs -specs=nano.specs \
+#LDFLAGS := -specs=nosys.specs -specs=nano.specs -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy 
     #       -Wl,--gc-sections \
     #       -T $(LDS) -Wl,-Map,$(MAP_FILE) \
     #       -Wl,--start-group -lc_nano -lgcc -lm -Wl,--end-group \
@@ -144,8 +144,7 @@ OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip 
     #            -Wl,--whole-archive \
     #               -lmbedtls -lmbedx509 -lmbedcrypto  \
     #            -Wl,--no-whole-archive \
-    #          -Wl,--end-group \
-              -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
+    #          -Wl,--end-group 
 
 %.o: %.c
 	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $^ -o $@
