@@ -135,10 +135,10 @@ psa_crypto.o: library/psa_crypto.c
 
 OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
 
-#LDFLAGS := -specs=nosys.specs -specs=nano.specs -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy 
-    #       -Wl,--gc-sections \
-    #       -T $(LDS) -Wl,-Map,$(MAP_FILE) \
-    #       -Wl,--start-group -lc_nano -lgcc -lm -Wl,--end-group \
+LDFLAGS := -specs=nosys.specs -specs=nano.specs -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy \
+           -Wl,--gc-sections \
+           -T $(LDS) -Wl,-Map,$(MAP_FILE) \
+           -Wl,--start-group -lc_nano -lgcc -lm -Wl,--end-group 
     #       -Lthird_party/mbedtls/library \
     #          -Wl,--start-group \
     #            -Wl,--whole-archive \
