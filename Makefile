@@ -102,6 +102,8 @@ ifneq ($(NRF_CC_BACKEND),)
 CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
 endif
 
+CFLAGS += -Ithird_party/mbedtls/include
+
 # Only use KAT rng.c when make KAT_RNG=1
 ifeq ($(KAT_RNG),1)
   RNG_SRC := kat/rng.c kat/kat_rng.c kat/aes256.c
