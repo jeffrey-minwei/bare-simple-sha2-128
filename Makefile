@@ -145,7 +145,7 @@ OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip 
     #               -lmbedtls -lmbedx509 -lmbedcrypto  \
     #            -Wl,--no-whole-archive \
     #          -Wl,--end-group \
-    #          -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
+              -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
 
 %.o: %.c
 	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $^ -o $@
