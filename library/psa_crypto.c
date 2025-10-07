@@ -1,4 +1,4 @@
-#include "../psa/crypto.h"
+#include <psa/crypto.h>
 
 psa_status_t psa_crypto_init()
 {
