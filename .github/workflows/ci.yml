@@ -75,16 +75,29 @@ jobs:
       - name: Show Renode version
         run: ./renode_portable/renode --version
 
-      - name: assert & list mbedtls static libs
+      - name: assert mbedtls static libs are ABSENT
         shell: bash
         run: |
-          set -e
+          set -Eeuo pipefail
           d=third_party/mbedtls/library
-          for f in libmbedcrypto.a libmbedtls.a libmbedx509.a; do
-            [ -f "$d/$f" ] || { echo "MISSING: $d/$f"; exit 1; }
-          done
-          echo "OK: all required libs exist"
-          ls -l "$d"/*.a || true
+          # 預期：沒有任何 .a；若目錄不存在也視為通過
+          if [ -d "$d" ]; then
+            bad=0
+            for f in libmbedcrypto.a libmbedtls.a libmbedx509.a; do
+              if [ -f "$d/$f" ]; then
+                echo "UNEXPECTED: $d/$f exists"
+                bad=1
+              fi
+            done
+            if [ "$bad" -eq 1 ]; then
+              echo "Listing for debug:"
+              ls -l "$d"/*.a || true
+              exit 1
+            fi
+            echo "OK: no prebuilt mbedtls static libs under $d"
+          else
+            echo "OK: $d does not exist (expected)"
+          fi
 
       - name: Cache nrfxlib
         id: cache-nrfxlib
