@@ -113,19 +113,6 @@ endif
 
 OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
 
-ifeq ($(MBEDTLS),0)
-  # not use mbedtls
-else
-  # default use mbedtls
- CFLAGS += -DMBEDTLS_PSA_CRYPTO_C \
-           -DMBEDTLS_ENTROPY_C \
-           -DMBEDTLS_CTR_DRBG_C \
-           -DMBEDTLS_NO_PLATFORM_ENTROPY \
-           -DMBEDTLS_ENTROPY_HARDWARE_ALT
-
-  LDFLAGS += -Lthird_party/mbedtls/library -Wl,--start-group -lmbedtls -lmbedx509 -lmbedcrypto -Wl,--end-group
-endif
-
 all: sign.elf
 
 sign.elf:  $(LDS) $(OBJS) $(RNG_OBJS)
