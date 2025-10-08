@@ -4,6 +4,45 @@
 #include "wots_plus.h"
 
 /**
+ * \param out_root [out] n-byte root node
+ * \param sk_seed [in] 
+ * \param i       [in] target node index
+ * \param z       [in] target node height
+ * \param pk_seed [in]  
+ * \param adrs    [out] 
+ */
+void xmss_node(uint8_t out_root[SPX_N],
+               const unsigned char sk_seed[SPX_N], 
+               unsigned int i,
+               unsigned int z,
+               const unsigned char pk_seed[SPX_N], 
+               ADRS adrs)
+{
+    if (z == 0)
+    {
+        set_type_and_clear(adrs, WOTS_HASH);
+        set_key_pair_addr(adrs, i);
+        // TODO 𝑛𝑜𝑑𝑒 ← wots_pkGen(SK.seed, PK.seed, ADRS)
+    }
+    else
+    {
+        uint8_t lnode[SPX_N];
+        // 𝑙𝑛𝑜𝑑𝑒 ← xmss_node(SK.seed, 2i, z − 1, PK.seed, ADRS)
+        xmss_node(lnode, sk_seed, (2 * i), (z - 1), pk_seed, adrs);
+
+        uint8_t rnode[SPX_N];
+        // 𝑟𝑛𝑜𝑑𝑒 ← xmss_node(SK.seed, 2i + 1, z - 1, PK.seed, ADRS)
+        xmss_node(rnode, sk_seed, (2 * i + 1), (z - 1), pk_seed, adrs);
+
+        set_type_and_clear(adrs, TREE);
+        set_tree_height(adrs, z);
+        set_tree_index(adrs, i);   
+
+        // TODO 𝑛𝑜𝑑𝑒 ← H(PK.seed, ADRS, 𝑙𝑛𝑜𝑑𝑒 ∥ 𝑟𝑛𝑜𝑑𝑒)
+    }
+}
+
+/**
     Algorithm 10 xmss_sign(𝑀, SK.seed, 𝑖𝑑𝑥, PK.seed, ADRS)
 
     Generates an XMSS signature.

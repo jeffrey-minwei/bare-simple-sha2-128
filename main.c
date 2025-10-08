@@ -69,24 +69,12 @@ int main(void)
     psa_status_t status = psa_crypto_init();
     if (status != PSA_SUCCESS) { 
         uarte0_puts("psa_crypto_init fail");
-    }
-
-    uint8_t sk_seed[SPX_N];
-    uint8_t pk_seed[SPX_N];
-    uint8_t sk_prf[SPX_N];
-
-    psa_status_t st_sk_seed = psa_generate_random(sk_seed, SPX_N);
-    if (st_sk_seed != PSA_SUCCESS) {
         for(;;);  // 失敗停在這裡
     }
 
-    psa_status_t st_pk_seed = psa_generate_random(pk_seed, SPX_N);
-    if (st_pk_seed != PSA_SUCCESS) {
-        for(;;);  // 失敗停在這裡
-    }
-
-    psa_status_t st_sk_prf = psa_generate_random(sk_prf, SPX_N);
-    if (st_sk_prf != PSA_SUCCESS) {
+    status = psa_generate_key(NULL, NULL);
+    if (status != PSA_SUCCESS) { 
+        uarte0_puts("psa_generate_key fail");
         for(;;);  // 失敗停在這裡
     }
     // Both SK.seed and SK.prf shall be generated using an approved random bit generator
@@ -94,32 +82,6 @@ int main(void)
 
     test_sha256();
     test_common();
-
-    uint8_t sk[SPX_SK_BYTES];
-    uint8_t pk[SPX_PK_BYTES];
-    uint8_t real_root[SPX_N] = {0};
-
-    // 測試資料：隨便準備一片葉子跟 auth_path
-    uint8_t leaf[SPX_N];
-    uint8_t auth_path[SPX_TREE_HEIGHT * SPX_N];
-    uint8_t pub_seed[SPX_N];
-    for (int i = 0; i < SPX_N; i++) {
-        leaf[i] = (uint8_t)(0xA0 + i);
-        pub_seed[i] = (uint8_t)(0x55 + i);
-    }
-    memset(auth_path, 0x11, sizeof(auth_path));
-
-    if (generate_keypair(sk, pk) != 0) {
-        for(;;);  // 失敗停在這裡
-    }
-
-    // 呼叫 set_real_root 計算 root 並回寫到 sk/pk
-    set_real_root(sk, pk, real_root, leaf, 0, auth_path, SPX_TREE_HEIGHT, pub_seed);
-
-    uarte0_hex("pk",   pk,   SPX_PK_BYTES);
-
-    uint8_t log[] = "set_real_root DONE\r\n";
-    uarte0_tx(log, sizeof(log) - 1);
 
     // TODO keygen() -> sign()
     // TODO print pk, sig.sha256, sig.len
@@ -132,9 +94,9 @@ int main(void)
     // 開簽
     const uint8_t msg[] = "Hello SLH-DSA";  
     size_t msg_len = sizeof(msg) - 1;   // 不含結尾 \0
-    slh_dsa_sign(sig, sk, pk, msg, msg_len, optrand);
+    //slh_dsa_sign(sig, sk, pk, msg, msg_len, optrand);
 
-    uarte0_hex_all("SLH-DSA Signature", sig, SPX_BYTES);
+    //uarte0_hex_all("SLH-DSA Signature", sig, SPX_BYTES);
     
     for (;;) { /* 不返回 */ }
     /* return 0; */

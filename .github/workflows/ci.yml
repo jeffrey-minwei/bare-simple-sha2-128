@@ -24,7 +24,6 @@ jobs:
         run: |
           set -Eeuo pipefail
           ls -la third_party/mbedtls/include/psa/crypto.h || (echo "missing psa/crypto.h" && exit 1)
-          # === cache submodules end ===
 
       - name: Cache ARM toolchain
         uses: actions/cache@v4
@@ -157,17 +156,11 @@ jobs:
       
           printf 'FOUND: %s\n' "${HITS[@]}"
 
-      #- name: Build x86
-      #  run: |
-      #    set -e
-      #    make clean
-      #    make TARGET=x86 KAT_RNG=1
-
       - name: Build nrf52840
         run: |
           set -e
           make clean
-          make TARGET=nrf52840 NRFXLIB_DIR="${NRFXLIB_DIR}" KAT_RNG=1
+          make TARGET=nrf52840 NRFXLIB_DIR="${NRFXLIB_DIR}"
 
       - name: Show sign_nrf52840.map
         shell: bash
@@ -182,7 +175,7 @@ jobs:
         run: |
           set -e
           make clean
-          make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" KAT_RNG=1
+          make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}"
 
       - name: Show sign_nrf5340dk.map
         shell: bash

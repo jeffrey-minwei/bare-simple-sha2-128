@@ -1,5 +1,3 @@
-override export KAT := 0
-
 .DEFAULT_GOAL := all
 .PHONY: all
 
@@ -20,22 +18,15 @@ endif
 
 endif
 
-OBJS := addr_compressed.o thf.o common.o addr.o chain.o base_2b.o keygen.o sha256.o slh_dsa_sign.o fors_sign.o fors_sk_gen.o
+OBJS := addr_compressed.o thf.o common.o addr.o \
+        chain.o base_2b.o keygen.o sha256.o \
+        slh_dsa_sign.o fors_sign.o fors_sk_gen.o
+
+OBJS += xmss_sign.o wots_plus.o psa_crypto.o
 
 CC := arm-none-eabi-gcc
 
-ifeq ($(TARGET),x86)
-  PLATFORM := platforms/x86
-  CC := gcc
-  CFLAGS := -O3 -std=c11 -Wall -Wextra -Wpedantic -ffunction-sections -fdata-sections -mrdrnd -Wl,--gc-sections
-  LDFLAGS := -Wl,-Map,x86_sign.map
-  STARTUP :=                         # like platform/x86/startup.c
-  LDS  :=                            # like platform/x86/linker.ld
-  OBJCOPY := objcopy
-  SIZE := size
-  ELF := sign_x86.elf
-
-else ifeq ($(TARGET),nrf52840)
+ifeq ($(TARGET),nrf52840)
   PLATFORM := platforms/nrf52840
   STARTUP := $(PLATFORM)/startup.c
   LDS  := $(PLATFORM)/linker.ld
@@ -75,11 +66,9 @@ SHA256 := platforms/sha256.c
 #vpath sha256.c $(PLATFORM) 
 vpath sha256.c platforms
 
-# Only use KAT rng.c when make KAT_RNG=1
-ifeq ($(KAT_RNG),1)
-  RNG_SRC := kat/rng.c kat/kat_rng.c kat/aes256.c
-  CFLAGS  += -DKAT_RNG
-endif
+RNG_SRC := kat/rng.c kat/aes256.c
+
+CFLAGS += -Ithird_party/mbedtls/include
 
 LDFLAGS += -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
 
@@ -89,7 +78,11 @@ ifneq ($(NRF_CC_BACKEND),)
 CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
 endif
 
-SRCS := $(STARTUP) $(RNG_SRC) main.c keygen.c $(SHA256) uart_min.c slh_dsa_sign.c base_2b.c addr_compressed.c addr.c common.c fors_sk_gen.c thf.c fors_sign.c chain.c
+SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c main.c \
+        keygen.c $(SHA256) uart_min.c slh_dsa_sign.c \
+        base_2b.c addr_compressed.c addr.c \
+        xmss_sign.c wots_plus.c \
+        common.c fors_sk_gen.c thf.c fors_sign.c chain.c
 
 RENODE_IMG = renode_pinned:cached
 
@@ -97,6 +90,9 @@ WORKDIR     ?= $(shell pwd)
 RESC        ?= run_sign.resc
 
 RNG_OBJS := $(RNG_SRC:.c=.o)
+
+psa_crypto.o: unsafe/psa_crypto.c
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^ -o $@
