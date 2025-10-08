@@ -79,8 +79,7 @@ void set_type_and_clear(ADRS adrs, unsigned int Y)
         // ADRS[16:20], ADRS[16, 17, 18, 19]
         memcpy(adrs + 16, S, 4);   // 16, 17, 18, 19
 
-        toByte(0, 12, S);
-        memcpy(adrs + 20, S, 12);  // 20, 21, ..., 31
+        memset(adrs + 20, 0, 12);  // 20, 21, ..., 31
     }
 }
 
