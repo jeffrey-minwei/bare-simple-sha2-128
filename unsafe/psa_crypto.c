@@ -25,6 +25,17 @@ psa_status_t psa_crypto_init(void)
 
     unsigned char *personalization_string = NULL;
     randombytes_init(entropy_input, personalization_string, 256);
+
+    unsigned char seed[48];
+    unsigned char msg[3300];
+    unsigned long long  mlen, smlen, mlen1;
+    for (int i=0; i<100; i++) {
+        randombytes(seed, 48);
+        mlen = 33*(i+1);
+        randombytes(msg, mlen);
+    }
+
+    randombytes_init(seed, NULL, 256);
     return PSA_SUCCESS;
 }
 
