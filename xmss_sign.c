@@ -18,8 +18,7 @@ void xmss_node(uint8_t out_root[SPX_N],
                const unsigned char pk_seed[SPX_N], 
                ADRS adrs)
 {
-    // TODO
-    if(z==0)
+    if (z == 0)
     {
         set_type_and_clear(adrs, WOTS_HASH);
         set_key_pair_addr(adrs, i);
@@ -27,13 +26,17 @@ void xmss_node(uint8_t out_root[SPX_N],
     }
     else
     {
-        // TODO
-        // 𝑙𝑛𝑜𝑑𝑒 ← xmss_node(SK.seed, 2𝑖, 𝑧 − 1, PK.seed, ADRS)
-        // 𝑟𝑛𝑜𝑑𝑒 ← xmss_node(SK.seed, 2𝑖 + 1, 𝑧 − 1, PK.seed, ADRS)
+        uint8_t lnode[SPX_N];
+        // 𝑙𝑛𝑜𝑑𝑒 ← xmss_node(SK.seed, 2i, z − 1, PK.seed, ADRS)
+        xmss_node(lnode, sk_seed, (2 * i), (z - 1), pk_seed, adrs);
+
+        uint8_t rnode[SPX_N];
+        // 𝑟𝑛𝑜𝑑𝑒 ← xmss_node(SK.seed, 2i + 1, z - 1, PK.seed, ADRS)
+        xmss_node(rnode, sk_seed, (2 * i + 1), (z - 1), pk_seed, adrs);
 
         set_type_and_clear(adrs, TREE);
-        set_tree_height(adrs, z)
-        set_tree_index(adrs, i)     
+        set_tree_height(adrs, z);
+        set_tree_index(adrs, i);   
 
         // TODO 𝑛𝑜𝑑𝑒 ← H(PK.seed, ADRS, 𝑙𝑛𝑜𝑑𝑒 ∥ 𝑟𝑛𝑜𝑑𝑒)
     }
