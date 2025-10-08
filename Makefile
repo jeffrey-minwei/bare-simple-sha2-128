@@ -93,7 +93,7 @@ ifneq ($(NRF_CC_BACKEND),)
 CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
 endif
 
-SRCS := $(STARTUP) $(RNG_SRC) main.c keygen.c $(SHA256) uart_min.c slh_dsa_sign.c base_2b.c addr_compressed.c addr.c common.c fors_sk_gen.c thf.c fors_sign.c chain.c
+SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c main.c keygen.c $(SHA256) uart_min.c slh_dsa_sign.c base_2b.c addr_compressed.c addr.c common.c fors_sk_gen.c thf.c fors_sign.c chain.c
 
 RENODE_IMG = renode_pinned:cached
 
@@ -102,7 +102,7 @@ RESC        ?= run_sign.resc
 
 RNG_OBJS := $(RNG_SRC:.c=.o)
 
-psa_crypto.o: unsafe/psa_crypto.o
+psa_crypto.o: unsafe/psa_crypto.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 %.o: %.c
