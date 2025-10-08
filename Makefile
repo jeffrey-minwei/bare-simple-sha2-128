@@ -96,7 +96,7 @@ endif
 SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c main.c \
         keygen.c $(SHA256) uart_min.c slh_dsa_sign.c \
         base_2b.c addr_compressed.c addr.c \
-        xmss_sign.c
+        xmss_sign.c \
         common.c fors_sk_gen.c thf.c fors_sign.c chain.c
 
 RENODE_IMG = renode_pinned:cached
