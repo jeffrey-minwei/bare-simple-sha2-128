@@ -16,61 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: false
+          submodules: recursive
           fetch-depth: 0
-
-      # === cache submodules start ===
-      - name: Resolve submodule SHAs
-        id: submods
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          : > submods.lock
-          if [ -s .gitmodules ]; then
-            while IFS= read -r p; do
-              [ -n "$p" ] || continue
-              sha="$(git ls-tree -d HEAD -- "$p" | awk '{print $3}')"
-              [ -n "$sha" ] || continue
-              echo "$sha $p" >> submods.lock
-            done < <(git config -f .gitmodules --get-regexp '^submodule\..*\.path' | awk '{print $3}')
-          fi
-          echo "paths=$(awk '{print $2}' submods.lock | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
-
-      - name: Cache submodules
-        id: cache-submods
-        uses: actions/cache@v4
-        with:
-          path: |
-            .git/modules
-            ${{ steps.submods.outputs.paths }}
-          key: submodules-${{ hashFiles('submods.lock') }}
-
-      - name: Ensure submodules present
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          need_init=0
-          if [ -s .gitmodules ]; then
-            # 若 cache miss，或任何子模組資料夾不存在，就 init
-            if [ "${{ steps.cache-submods.outputs.cache-hit }}" != "true" ]; then
-              need_init=1
-            else
-              while read -r _ path; do
-                [ -d "$path/.git" ] || need_init=1
-              done < submods.lock
-            fi
-            if [ "$need_init" -eq 1 ]; then
-              git submodule sync --recursive
-              git submodule update --init --recursive --depth=1
-            fi
-            # 對齊到預期 SHA
-            while read -r sha path; do
-              [ -d "$path" ] || continue
-              git -C "$path" fetch -q --depth=1 origin "$sha" || true
-              git -C "$path" checkout -q "$sha"
-            done < submods.lock
-            git submodule status --recursive
-          fi
 
       - name: Quick check for psa/crypto.h
         shell: bash
@@ -127,9 +74,6 @@ jobs:
 
       - name: Show Renode version
         run: ./renode_portable/renode --version
-
-      - name: mbedtls libs (cache+build)
-        uses: ./.github/actions/mbedtls-lib-v2_28_8
 
       - name: assert & list mbedtls static libs
         shell: bash
