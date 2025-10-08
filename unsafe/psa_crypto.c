@@ -56,4 +56,6 @@ psa_status_t psa_generate_key(const psa_key_attributes_t * attributes,
     unsigned int h_prime = 9;
     // PK.root ← xmss_node(SK.seed, 0, ℎ′, PK.seed, ADRS)
     xmss_node(pk_root, sk_seed, 0, h_prime, pk_seed, adrs);
+
+    return PSA_SUCCESS;
 }
