@@ -83,6 +83,8 @@ ifeq ($(KAT_RNG),1)
   CFLAGS  += -DKAT_RNG
 endif
 
+CFLAGS += -Ithird_party/mbedtls/include
+
 LDFLAGS += -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
 
 NM ?= $(shell $(CC) -print-prog-name=nm)
