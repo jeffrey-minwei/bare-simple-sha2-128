@@ -1,11 +1,11 @@
 #include "common.h"
-#include <psa/crypto.h>
+#include "psa/crypto.h"
 #include "uart_min.h"
 
 #include <stddef.h>
 #include <string.h>
 
-//#include "ocrypto_hmac_sha256.h"
+#include "ocrypto_hmac_sha256.h"
 
 static void test_rng();
 
@@ -13,12 +13,10 @@ int hmac_sha256(uint8_t out[32],
                 const uint8_t *key, size_t key_len,
                 const uint8_t *msg, size_t msg_len)
 {
-    /*
     ocrypto_hmac_sha256_ctx ctx;
     ocrypto_hmac_sha256_init(&ctx, key, key_len);
     ocrypto_hmac_sha256_update(&ctx, msg, msg_len);
     ocrypto_hmac_sha256_final(&ctx, out);
-    */
     return 0;
 }
 

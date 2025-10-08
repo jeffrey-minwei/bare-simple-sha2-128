@@ -15,69 +15,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: false
-          fetch-depth: 0
-
-      # === cache submodules start ===
-      - name: Resolve submodule SHAs
-        id: submods
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          : > submods.lock
-          if [ -s .gitmodules ]; then
-            while IFS= read -r p; do
-              [ -n "$p" ] || continue
-              sha="$(git ls-tree -d HEAD -- "$p" | awk '{print $3}')"
-              [ -n "$sha" ] || continue
-              echo "$sha $p" >> submods.lock
-            done < <(git config -f .gitmodules --get-regexp '^submodule\..*\.path' | awk '{print $3}')
-          fi
-          echo "paths=$(awk '{print $2}' submods.lock | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
-
-      - name: Cache submodules
-        id: cache-submods
-        uses: actions/cache@v4
-        with:
-          path: |
-            .git/modules
-            ${{ steps.submods.outputs.paths }}
-          key: submodules-${{ hashFiles('submods.lock') }}
-
-      - name: Ensure submodules present
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          need_init=0
-          if [ -s .gitmodules ]; then
-            # 若 cache miss，或任何子模組資料夾不存在，就 init
-            if [ "${{ steps.cache-submods.outputs.cache-hit }}" != "true" ]; then
-              need_init=1
-            else
-              while read -r _ path; do
-                [ -d "$path/.git" ] || need_init=1
-              done < submods.lock
-            fi
-            if [ "$need_init" -eq 1 ]; then
-              git submodule sync --recursive
-              git submodule update --init --recursive --depth=1
-            fi
-            # 對齊到預期 SHA
-            while read -r sha path; do
-              [ -d "$path" ] || continue
-              git -C "$path" fetch -q --depth=1 origin "$sha" || true
-              git -C "$path" checkout -q "$sha"
-            done < submods.lock
-            git submodule status --recursive
-          fi
-
-      - name: Quick check for psa/crypto.h
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          ls -la third_party/mbedtls/include/psa/crypto.h || (echo "missing psa/crypto.h" && exit 1)
-          # === cache submodules end ===
 
       - name: Cache ARM toolchain
         uses: actions/cache@v4
@@ -127,6 +64,20 @@ jobs:
 
       - name: Show Renode version
         run: ./renode_portable/renode --version
+
+      - name: mbedtls libs (cache+build)
+        uses: ./.github/actions/mbedtls-lib-v2_28_8
+
+      - name: assert & list mbedtls static libs
+        shell: bash
+        run: |
+          set -e
+          d=third_party/mbedtls/library
+          for f in libmbedcrypto.a libmbedtls.a libmbedx509.a; do
+            [ -f "$d/$f" ] || { echo "MISSING: $d/$f"; exit 1; }
+          done
+          echo "OK: all required libs exist"
+          ls -l "$d"/*.a || true
 
       - name: Cache nrfxlib
         id: cache-nrfxlib
@@ -207,17 +158,17 @@ jobs:
       - name: Run in Renode (nrf52840)
         run: make TARGET=nrf52840 NRFXLIB_DIR="${NRFXLIB_DIR}" ci-run-nrf52840
 
-      #- name: Build nRF5340 DK
-      #  run: |
-      #    set -e
-      #    make clean
-      #    make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" KAT_RNG=1
+      - name: Build nRF5340 DK
+        run: |
+          set -e
+          make clean
+          make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" KAT_RNG=1
 
-      #- name: Show sign_nrf5340dk.map
-      #  shell: bash
-      #  run: |
-      #    set -e
-      #    head -n 300 sign_nrf5340dk.map
+      - name: Show sign_nrf5340dk.map
+        shell: bash
+        run: |
+          set -e
+          head -n 300 sign_nrf5340dk.map
 
-      #- name: Run in Renode (nrf5340dk)
-      #  run: make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" ci-run-nrf5340dk
+      - name: Run in Renode (nrf5340dk)
+        run: make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" ci-run-nrf5340dk

@@ -1,16 +1,7 @@
-override export KAT_RNG := 0
-
-$(info TARGET(raw)="$(TARGET)" origin=$(origin TARGET))
+override export KAT := 0
 
 .DEFAULT_GOAL := all
-.PHONY: all where
-
-where:
-	@pwd
-	@echo NRFXLIB_DIR=$(NRFXLIB_DIR)
-	@find $(NRFXLIB_DIR) -maxdepth 7 -type f \
-	  \( -name 'libmbedcrypto*.a' -o -name 'libnrf_cc310*.a' -o -name 'libnrf_cc310_platform*.a' \) -print
-
+.PHONY: all
 
 # ===== nRF nrfxlib (CC31x) autodetect: headers + libs =====
 NRFXLIB_DIR ?= $(abspath third_party/nrfxlib)
@@ -29,80 +20,60 @@ endif
 
 endif
 
-# clean help ci-run 以外一律要指定 TARGET
-ifeq (,$(filter clean help ci-run%,$(MAKECMDGOALS)))
-ifeq ($(strip $(TARGET)),)
-$(error TARGET is required, ex. make TARGET=nrf52840)
-endif
-endif
+OBJS := addr_compressed.o thf.o common.o addr.o chain.o base_2b.o keygen.o sha256.o slh_dsa_sign.o fors_sign.o fors_sk_gen.o
 
 CC := arm-none-eabi-gcc
-
-LDLIBS := 
 
 ifeq ($(TARGET),x86)
   PLATFORM := platforms/x86
   CC := gcc
-  CFLAGS := -O3 -std=c11 -Wall -Wextra -Wpedantic -ffunction-sections \
-            -fdata-sections -mrdrnd -Wl,--gc-sections
+  CFLAGS := -O3 -std=c11 -Wall -Wextra -Wpedantic -ffunction-sections -fdata-sections -mrdrnd -Wl,--gc-sections
+  LDFLAGS := -Wl,-Map,x86_sign.map
   STARTUP :=                         # like platform/x86/startup.c
   LDS  :=                            # like platform/x86/linker.ld
   OBJCOPY := objcopy
   SIZE := size
   ELF := sign_x86.elf
 
-else ifeq ($(strip $(TARGET)),nrf52840)
-  $(info HIT nrf52840)
+else ifeq ($(TARGET),nrf52840)
   PLATFORM := platforms/nrf52840
   STARTUP := $(PLATFORM)/startup.c
   LDS  := $(PLATFORM)/linker.ld
-  ARCHFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft
-  CFLAGS := -O2 -ffreestanding -Wall -Wextra 
-  #CFLAGS += -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
+  CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 \
+            -ffreestanding -Wall -Wextra \
+            -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections \
+            -I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include \
+            -I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include \
+            -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
+  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive \
+             -Wl,--no-whole-archive -specs=nano.specs -nostartfiles
   ELF := sign_nrf52840.elf
-  LIB_CC310 := $(firstword \
-    $(wildcard $(NRFXLIB_DIR)/crypto/nrf_cc310/lib/cortex-m4/hard-float/armgcc/libnrf_cc310*.a) \
-    $(wildcard $(NRFXLIB_DIR)/crypto/nrf_cc310/lib/cortex-m4/hard-float/libnrf_cc310*.a))
-  LIB_CC310_PLAT := $(firstword \
-    $(wildcard $(NRFXLIB_DIR)/crypto/nrf_cc310_platform/lib/cortex-m4/hard-float/armgcc/libnrf_cc310_platform*.a) \
-    $(wildcard $(NRFXLIB_DIR)/crypto/nrf_cc310_platform/lib/cortex-m4/hard-float/libnrf_cc310_platform*.a))
-  #LIB_MBEDCRYPTO := $(firstword \
-  #  $(wildcard $(NRFXLIB_DIR)/crypto/nrf_security/lib/cortex-m4/hard-float/armgcc/libmbedcrypto*.a) \
-  #  $(wildcard $(NRFXLIB_DIR)/crypto/nrf_security/lib/cortex-m4/hard-float/libmbedcrypto*.a))
+  # NRF_CC_BACKEND := nrf_cc310_mbedcrypto
   ARCH_DIR   := cortex-m4
   FLOAT_DIR  := soft-float
-  LIB_MBEDCRYPTO := $(firstword \
-    $(wildcard $(NRFXLIB_DIR)/crypto/nrf_security/lib/$(ARCH_DIR)/$(FLOAT_DIR)/armgcc/libmbedcrypto*.a) \
-    $(wildcard $(NRFXLIB_DIR)/crypto/nrf_security/lib/$(ARCH_DIR)/$(FLOAT_DIR)/libmbedcrypto*.a))
   RESC := run_sign.resc
-  MAP_FILE := sign_nrf52840.map
 
 else ifeq ($(TARGET),nrf5340dk)
   PLATFORM := platforms/nrf5340dk
   STARTUP := $(PLATFORM)/startup.c
   LDS  := $(PLATFORM)/linker.ld
-  ARCHFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft
-  CFLAGS := -O2 -ffreestanding -Wall -Wextra 
+  CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
+            -ffreestanding -Wall -Wextra -Wl,--gc-sections  \
+            -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
+  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340dk.map -specs=nano.specs -nostartfiles
   ARCH_DIR   := cortex-m33+nodsp
   FLOAT_DIR  := soft-float
-  ELF       := sign_nrf5340dk.elf
+  ELF := sign_nrf5340dk.elf
+  # NRF_CC_BACKEND := nrf_cc312_mbedcrypto
   RESC := ./ci/renode/run_sign_nrf5340dk.resc
-  MAP_FILE := sign_nrf5340dk.map
 
 endif
 
-# print folder in platforms
-#$(foreach d,$(notdir $(wildcard $(dir $(abspath $(lastword $(MAKEFILE_LIST))))platforms/*)),$(if $(wildcard $(dir $(abspath $(lastword $(MAKEFILE_LIST))))platforms/$(d)/.),$(info $(d))))
-
-$(info NRFXLIB_DIR = $(NRFXLIB_DIR))
-
-NM ?= $(shell $(CC) -print-prog-name=nm)
-
-ifneq ($(NRF_CC_BACKEND),)
-CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
-endif
-
-CFLAGS += -Ithird_party/mbedtls/include
+#SHA256 := $(PLATFORM)/sha256.c
+# compute SHA-256 without hardware acceleration (temporary)
+SHA256 := platforms/sha256.c
+#vpath sha256.c $(PLATFORM) 
+vpath sha256.c platforms
 
 # Only use KAT rng.c when make KAT_RNG=1
 ifeq ($(KAT_RNG),1)
@@ -110,63 +81,57 @@ ifeq ($(KAT_RNG),1)
   CFLAGS  += -DKAT_RNG
 endif
 
-OBJS := addr_compressed.o thf.o common.o addr.o  \
-        chain.o base_2b.o uart_min.o \
-        keygen.o sha256.o slh_dsa_sign.o trng.o \
-        wots_plus.o fors_sign.o \
-        psa_crypto.o rng.o aes256.o 
+LDFLAGS += -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
 
-#OBJS += xmss_sign.o
+NM ?= $(shell $(CC) -print-prog-name=nm)
+
+ifneq ($(NRF_CC_BACKEND),)
+CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
+endif
+
+SRCS := $(STARTUP) $(RNG_SRC) main.c keygen.c $(SHA256) uart_min.c slh_dsa_sign.c base_2b.c addr_compressed.c addr.c common.c fors_sk_gen.c thf.c fors_sign.c chain.c
 
 RENODE_IMG = renode_pinned:cached
 
 WORKDIR     ?= $(shell pwd)
+RESC        ?= run_sign.resc
 
-#RNG_OBJS := $(RNG_SRC:.c=.o)
-
-aes256.o: kat/aes256.c
-	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $< -o $@  
-
-rng.o: kat/rng.c
-	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $< -o $@  
-
-psa_crypto.o: library/psa_crypto.c
-	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $< -o $@
-
-OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
-
-LDFLAGS := -specs=nosys.specs -specs=nano.specs -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy \
-           -Wl,--gc-sections \
-           -T $(LDS) -Wl,-Map,$(MAP_FILE) \
-           -Wl,--start-group -lc_nano -lgcc -lm -Wl,--end-group 
+RNG_OBJS := $(RNG_SRC:.c=.o)
 
 %.o: %.c
-	$(CC) $(ARCHFLAGS) $(CFLAGS) -c $^ -o $@
-
-NRFXLIB_DIR := third_party/nrfxlib
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 ifneq ($(filter clean,$(MAKECMDGOALS)),)
   # do nothing
 else
   $(info NRFXLIB_DIR = $(NRFXLIB_DIR))
   $(info NRF_CC_BACKEND = $(NRF_CC_BACKEND))
-#  $(info RNG_SRC = $(RNG_SRC))
-#  $(info RNG_OBJS = $(RNG_OBJS))
+  $(info RNG_SRC = $(RNG_SRC))
+  $(info RNG_OBJS = $(RNG_OBJS))
 
 endif
 
-$(info KAT_RNG = $(KAT_RNG))
-$(info TARGET = $(TARGET))
-$(info MAP_FILE = $(MAP_FILE))
+OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
 
+ifeq ($(MBEDTLS),0)
+  # not use mbedtls
+else
+  # default use mbedtls
+ CFLAGS += -DMBEDTLS_PSA_CRYPTO_C \
+           -DMBEDTLS_ENTROPY_C \
+           -DMBEDTLS_CTR_DRBG_C \
+           -DMBEDTLS_NO_PLATFORM_ENTROPY \
+           -DMBEDTLS_ENTROPY_HARDWARE_ALT
+
+  LDFLAGS += -Lthird_party/mbedtls/library -Wl,--start-group -lmbedtls -lmbedx509 -lmbedcrypto -Wl,--end-group
+endif
 
 all: sign.elf
 
-sha256.o: platforms/sha256.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-sign.elf:  $(LDS) $(OBJS) $(RNG_OBJS) $(PSA_CRYPTO_OBJS)
-	$(CC) $(ARCHFLAGS) -Ithird_party/mbedtls/include main.c $(STARTUP) $(OBJS) $(RNG_OBJS) $(PSA_CRYPTO_OBJS) -v $(OBERON_LIB) $(LDFLAGS) $(LIBDIRS) -o $(ELF)
+sign.elf:  $(LDS) $(OBJS) $(RNG_OBJS)
+	@echo "==> start building with $(CC), output should be $(ELF)"
+	$(CC) $(CFLAGS) $(SRCS) -v $(OBERON_LIB) $(LDFLAGS) -o $(ELF)
+# check memcpy has real implementation
 	$(NM) $(ELF) | grep -E 'memcpy|__aeabi_memcpy'
 
 clean:
