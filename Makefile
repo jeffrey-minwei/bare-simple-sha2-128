@@ -22,6 +22,8 @@ endif
 
 OBJS := addr_compressed.o thf.o common.o addr.o chain.o base_2b.o keygen.o sha256.o slh_dsa_sign.o fors_sign.o fors_sk_gen.o
 
+OBJS += xmss_sign.o psa_crypto.o
+
 CC := arm-none-eabi-gcc
 
 ifeq ($(TARGET),x86)
@@ -97,6 +99,9 @@ WORKDIR     ?= $(shell pwd)
 RESC        ?= run_sign.resc
 
 RNG_OBJS := $(RNG_SRC:.c=.o)
+
+psa_crypto.o: unsafe/psa_crypto.o
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $^ -o $@

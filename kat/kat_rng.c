@@ -1,6 +1,6 @@
 #include "rng.h"
 
-#include "../psa/crypto.h"
+#include "psa/crypto.h"
 
 #ifndef KAT_RNG
 #error "kat_rng.c should only be compiled when -DKAT_RNG is defined (test-only)."

@@ -1,7 +1,12 @@
-name: Bare-metal CI
+name: dev Bare-metal CI
 
 on:
   workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch or tag to build"
+        required: true
+        default: "dev"
 
 jobs:
   build-and-test:

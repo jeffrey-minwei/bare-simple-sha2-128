@@ -6,6 +6,21 @@
 // (ℎ′ + 𝑙𝑒𝑛) for sha2-128s, it is 44
 #define SPX_XMSS_LEN  44
 
+/**
+ * \param out_root [out] n-byte root node
+ * \param sk_seed [in] 
+ * \param i       [in] target node index
+ * \param z       [in] target node height
+ * \param pk_seed [in]  
+ * \param adrs    [out] 
+ */
+void xmss_node(uint8_t out_root[SPX_N],
+               const unsigned char sk_seed[SPX_N], 
+               unsigned int i,
+               unsigned int z,
+               const unsigned char pk_seed[SPX_N], 
+               ADRS adrs);
+
 void xmss_sign(N_BYTES out[SPX_XMSS_LEN],
                const uint8_t M[SPX_N], 
                const unsigned char sk_seed[SPX_N], 
