@@ -1,5 +1,3 @@
-override export KAT := 0
-
 .DEFAULT_GOAL := all
 .PHONY: all
 
@@ -28,18 +26,7 @@ OBJS += xmss_sign.o wots_plus.o psa_crypto.o
 
 CC := arm-none-eabi-gcc
 
-ifeq ($(TARGET),x86)
-  PLATFORM := platforms/x86
-  CC := gcc
-  CFLAGS := -O3 -std=c11 -Wall -Wextra -Wpedantic -ffunction-sections -fdata-sections -mrdrnd -Wl,--gc-sections
-  LDFLAGS := -Wl,-Map,x86_sign.map
-  STARTUP :=                         # like platform/x86/startup.c
-  LDS  :=                            # like platform/x86/linker.ld
-  OBJCOPY := objcopy
-  SIZE := size
-  ELF := sign_x86.elf
-
-else ifeq ($(TARGET),nrf52840)
+ifeq ($(TARGET),nrf52840)
   PLATFORM := platforms/nrf52840
   STARTUP := $(PLATFORM)/startup.c
   LDS  := $(PLATFORM)/linker.ld
@@ -79,11 +66,7 @@ SHA256 := platforms/sha256.c
 #vpath sha256.c $(PLATFORM) 
 vpath sha256.c platforms
 
-# Only use KAT rng.c when make KAT_RNG=1
-ifeq ($(KAT_RNG),1)
-  RNG_SRC := kat/rng.c kat/kat_rng.c kat/aes256.c
-  CFLAGS  += -DKAT_RNG
-endif
+RNG_SRC := kat/rng.c kat/aes256.c
 
 CFLAGS += -Ithird_party/mbedtls/include
 
