@@ -49,6 +49,8 @@ psa_status_t psa_generate_key(const psa_key_attributes_t * attributes,
 
     ADRS adrs;
     memset(adrs, 0, 32);
+
+    int d = 7;  // SLH-DSA-SHA2-128s, d is 7
     set_layer_addr(adrs, d-1);
 
     unsigned int h_prime = 9;
