@@ -1,5 +1,6 @@
 // slh_dsa_sign.c
 
+#include "psa/crypto.h"
 #include "sha256.h"
 #include "slh_dsa_sign.h"
 #include "fors_sign.h"
@@ -11,7 +12,7 @@
 // SPX_N, SPX_SK_BYTES, SPX_PK_BYTES, SPX_BYTES, SPX_FULL_HEIGHT, SPX_D, SPX_FORS_MSG_BYTES
 
 static void prf_msg(uint8_t R[SPX_N],
-                    const uint8_t sk_prf[SPX_N],
+                    psa_key_id_t key_id,
                     const uint8_t optrand[SPX_N],
                     const uint8_t *m, 
                     size_t mlen)
@@ -21,7 +22,17 @@ static void prf_msg(uint8_t R[SPX_N],
     memcpy(opt_rand_M + SPX_N, m, mlen);
 
     uint8_t hmac_sha256_out[32];
-    hmac_sha256(hmac_sha256_out, sk_prf, SPX_N, opt_rand_M, sizeof(opt_rand_M));
+    size_t mac_len = 0;
+    //hmac_sha256(hmac_sha256_out, sk_prf, SPX_N, opt_rand_M, sizeof(opt_rand_M));
+    psa_status_t status = psa_mac_compute(key_id, 
+                                          PSA_ALG_HMAC(PSA_ALG_SHA_256), 
+                                          abc, sizeof(abc) - 1, 
+                                          hmac_sha256_out, sizeof(hmac_sha256_out),
+                                          &mac_len);
+    if (status != PSA_SUCCESS) { 
+        uarte0_puts("psa_mac_compute fail");
+        for(;;);  // 失敗停在這裡
+    }
 
     memcpy(R, hmac_sha256_out, SPX_N);
 }
@@ -116,7 +127,8 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
 
     // 1) R
     uint8_t R[SPX_N];
-    prf_msg(R, SK_PRF, optrand, m, mlen);
+    psa_key_id_t key_id;
+    prf_msg(R, key_id, optrand, m, mlen);
     memcpy(p, R, SPX_N); p += SPX_N;
 
     // 2) H_msg
