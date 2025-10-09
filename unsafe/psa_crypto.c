@@ -121,7 +121,7 @@ static void compress_adrs(uint8_t c[22], const ADRS adrs)
  * n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
  * p_pk_seed and p_sk_seed both are pointer to the first element of an array of length at least 16.
  */
-void _prf(uint8_t out[SPX_N], const psa_key_it_t pk_seed_key_id, const psa_key_it_t sk_seed_key_id, const ADRS adrs)
+void _prf(uint8_t out[SPX_N], const psa_key_id_t pk_seed_key_id, const psa_key_id_t sk_seed_key_id, const ADRS adrs)
 {    
     // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
 
