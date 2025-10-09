@@ -101,17 +101,7 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
     return PSA_SUCCESS;
 }
 
-void compress_adrs(uint8_t c[22], const ADRS adrs)
-{
-    // ADRS𝑐 = ADRS[3] ∥ ADRS[8 ∶ 16] ∥ ADRS[19] ∥ ADRS[20 ∶ 32]
-    c[0] = adrs[3];
-    memcpy(c, adrs, 1);   // ADRS[3]
-
-    memcpy(c + 1, adrs + 8, 8);   // ADRS[8 ∶ 16], len is 8
-    c[9] = adrs[19];              // ... ∥ ADRS[19]
-
-    memcpy(c + 10, adrs + 20, 12);  //  ∥ ADRS[20 ∶ 32], len is 12
-}
+void compress_adrs(uint8_t c[22], const ADRS adrs);
 
 /**
  * Based on the SPHINCS+ reference implementation: https://github.com/sphincs/sphincsplus/blob/master/ref/hash_sha2.c#L39
