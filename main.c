@@ -62,12 +62,13 @@ void test_psa_hash_compute()
     const char abc[] = "abc";
     uint8_t out32[32];
     sha256(abc, sizeof(abc) - 1, out32);
+    size_t olen = 0;
     psa_status_t status = psa_hash_compute(PSA_ALG_SHA_256, 
                                            abc, 
                                            sizeof(abc) - 1, 
                                            out32, 
                                            sizeof(out32), 
-                                           PSA_HASH_LENGTH(PSA_ALG_SHA_256));
+                                           &olen);
     if (status != PSA_SUCCESS) { 
         uarte0_puts("psa_hash_compute fail");
         for(;;);  // 失敗停在這裡
