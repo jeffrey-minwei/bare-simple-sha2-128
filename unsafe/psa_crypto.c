@@ -6,6 +6,7 @@
 #include "../params.h"
 #include "../xmss_sign.h"
 #include "../sha256.h"
+#include "hmac_sha256.h"
 
 // 檔案作用域靜態儲存期（同檔可見）
 static uint8_t sk_seed[SPX_N] = {0};
@@ -80,6 +81,22 @@ psa_status_t psa_hash_compute(psa_algorithm_t alg,
                               size_t * hash_length)
 {
     sha256(input, input_length, hash);
+
+    return PSA_SUCCESS;
+}
+
+psa_status_t psa_mac_compute(psa_key_id_t key,
+                             psa_algorithm_t alg,
+                             const uint8_t * input,
+                             size_t input_length,
+                             uint8_t * mac,
+                             size_t mac_size,
+                             size_t * mac_length)
+{
+    
+    hmac_sha256(sk_prf, sizeof(sk_prf),
+                input, input_length,
+                mac);
 
     return PSA_SUCCESS;
 }
