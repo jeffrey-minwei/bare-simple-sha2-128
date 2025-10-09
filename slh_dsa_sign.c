@@ -26,7 +26,7 @@ static void prf_msg(uint8_t R[SPX_N],
     //hmac_sha256(hmac_sha256_out, sk_prf, SPX_N, opt_rand_M, sizeof(opt_rand_M));
     psa_status_t status = psa_mac_compute(key_id, 
                                           PSA_ALG_HMAC(PSA_ALG_SHA_256), 
-                                          abc, sizeof(abc) - 1, 
+                                          opt_rand_M, sizeof(opt_rand_M) - 1, 
                                           hmac_sha256_out, sizeof(hmac_sha256_out),
                                           &mac_len);
     if (status != PSA_SUCCESS) { 
