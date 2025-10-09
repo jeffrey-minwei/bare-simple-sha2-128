@@ -4,6 +4,8 @@
 
 #include "chain.h"
 
+#include <string.h>
+
 /**
  * example:
  *     chain(out, sk_seed, i, s, pk_seed, adrs)
