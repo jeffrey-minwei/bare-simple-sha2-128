@@ -2,6 +2,8 @@
 #include "addr.h"
 #include "uart_min.h"
 
+#include <string.h>
+
 void test_addr()
 {
     unsigned char S[4];
