@@ -28,37 +28,34 @@ CC := arm-none-eabi-gcc
 
 ifeq ($(TARGET),nrf52840)
   PLATFORM := platforms/nrf52840
-  STARTUP := $(PLATFORM)/startup.c
-  LDS  := $(PLATFORM)/linker.ld
   CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra \
             -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections 
-            #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include 
             #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include 
-            #-I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive \
-             -Wl,--no-whole-archive -specs=nano.specs -nostartfiles
+             -Wl,--no-whole-archive \
+             -specs=nano.specs -nostartfiles
   ELF := sign_nrf52840.elf
   # NRF_CC_BACKEND := nrf_cc310_mbedcrypto
   ARCH_DIR   := cortex-m4
-  FLOAT_DIR  := soft-float
   RESC := run_sign.resc
 
 else ifeq ($(TARGET),nrf5340dk)
   PLATFORM := platforms/nrf5340dk
-  STARTUP := $(PLATFORM)/startup.c
-  LDS  := $(PLATFORM)/linker.ld
   CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
-            -ffreestanding -Wall -Wextra -Wl,--gc-sections  
-            #-I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
-  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340dk.map -specs=nano.specs -nostartfiles
+            -ffreestanding -Wall -Wextra -Wl,--gc-sections 
+  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340dk.map \
+             -specs=nano.specs -nostartfiles
   ARCH_DIR   := cortex-m33+nodsp
-  FLOAT_DIR  := soft-float
   ELF := sign_nrf5340dk.elf
   # NRF_CC_BACKEND := nrf_cc312_mbedcrypto
   RESC := ./ci/renode/run_sign_nrf5340dk.resc
 
 endif
+
+STARTUP := $(PLATFORM)/startup.c
+LDS  := $(PLATFORM)/linker.ld
+FLOAT_DIR  := soft-float
 
 #SHA256 := $(PLATFORM)/sha256.c
 # compute SHA-256 without hardware acceleration (temporary)
@@ -109,24 +106,21 @@ else
   $(info NRF_CC_BACKEND = $(NRF_CC_BACKEND))
   $(info RNG_SRC = $(RNG_SRC))
   $(info RNG_OBJS = $(RNG_OBJS))
+  $(info TARGET = $(TARGET))
 
 endif
-
-#OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
 
 all: sign.elf
 
 sign.elf:  $(LDS) $(OBJS) $(RNG_OBJS)
 	@echo "==> start building with $(CC), output should be $(ELF)"
-	$(CC) $(CFLAGS) $(SRCS) -v $(OBERON_LIB) $(LDFLAGS) -o $(ELF)
-# check memcpy has real implementation
+	$(CC) $(CFLAGS) $(SRCS) -v $(LDFLAGS) -o $(ELF)
 	$(NM) $(ELF) | grep -E 'memcpy|__aeabi_memcpy'
 
 clean:
 	rm -f *.o sign_*.elf sign.elf
 	rm -f $(ELF)
 
-# 本機（有裝 renode）
 run: $(ELF) $(RESC)
 	renode -e 'include @$(RESC); sleep 2; q'
 
@@ -135,16 +129,11 @@ RENODE  ?= ./renode_portable/renode
 strip_ansi = sed 's/\x1B\[[0-9;]*[A-Za-z]//g'
 
 ci-run-nrf52840: $(ELF) $(RESC)
-	@echo "CFLAGS += -I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include" \
-		$(if $(NRF_CC_BACKEND), " -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include")
-	@echo "NRF_LIBS:" && printf "  %s\n" $(NRF_LIBS)
 	$(RENODE) --console --disable-xwt \
 		-e "set ansi false; include @$(RESC); sleep 2; q" \
 		| $(strip_ansi)
 
 ci-run-nrf5340dk: $(ELF) $(RESC)
-	@echo "CFLAGS += $(if $(NRF_CC_BACKEND), " -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include")"
-	@echo "NRF_LIBS:" && printf "  %s\n" $(NRF_LIBS)
 	$(RENODE) --console --disable-xwt -e 'help; q' | grep -i UART | sed 's/\x1B\[[0-9;]*[A-Za-z]//g'
 	$(RENODE) --console --disable-xwt \
 		-e "set ansi false; include @$(RESC); sleep 2; q" \
