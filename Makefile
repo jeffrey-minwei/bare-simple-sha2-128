@@ -32,10 +32,10 @@ ifeq ($(TARGET),nrf52840)
   LDS  := $(PLATFORM)/linker.ld
   CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra \
-            -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections \
-            -I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include \
-            -I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include \
-            -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
+            -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections 
+            #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include 
+            #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include 
+            #-I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive \
              -Wl,--no-whole-archive -specs=nano.specs -nostartfiles
   ELF := sign_nrf52840.elf
@@ -49,8 +49,8 @@ else ifeq ($(TARGET),nrf5340dk)
   STARTUP := $(PLATFORM)/startup.c
   LDS  := $(PLATFORM)/linker.ld
   CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
-            -ffreestanding -Wall -Wextra -Wl,--gc-sections  \
-            -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
+            -ffreestanding -Wall -Wextra -Wl,--gc-sections  
+            #-I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340dk.map -specs=nano.specs -nostartfiles
   ARCH_DIR   := cortex-m33+nodsp
   FLOAT_DIR  := soft-float
@@ -112,7 +112,7 @@ else
 
 endif
 
-OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
+#OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
 
 all: sign.elf
 
