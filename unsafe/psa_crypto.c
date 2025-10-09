@@ -101,7 +101,7 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
     return PSA_SUCCESS;
 }
 
-static void compress_adrs(uint8_t c[22], const ADRS adrs)
+void compress_adrs(uint8_t c[22], const ADRS adrs)
 {
     // ADRS𝑐 = ADRS[3] ∥ ADRS[8 ∶ 16] ∥ ADRS[19] ∥ ADRS[20 ∶ 32]
     c[0] = adrs[3];

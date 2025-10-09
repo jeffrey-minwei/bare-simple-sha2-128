@@ -1,10 +1,11 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <stdint.h>
-
 #include "params.h"
 #include "psa/crypto.h"
+
+#include <stdint.h>
+#include <string.h>
 
 void test_common();
 
