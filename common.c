@@ -5,33 +5,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#include "ocrypto_hmac_sha256.h"
-
 static void test_rng();
-
-int hmac_sha256(uint8_t out[32],
-                const uint8_t *key, size_t key_len,
-                const uint8_t *msg, size_t msg_len)
-{
-    ocrypto_hmac_sha256_ctx ctx;
-    ocrypto_hmac_sha256_init(&ctx, key, key_len);
-    ocrypto_hmac_sha256_update(&ctx, msg, msg_len);
-    ocrypto_hmac_sha256_final(&ctx, out);
-    return 0;
-}
-
-void test_hmac_sha256()
-{
-    uint8_t sk_seed[SPX_N];
-    uint8_t pk_seed[SPX_N];
-
-    psa_generate_random(sk_seed, SPX_N);
-    psa_generate_random(pk_seed, SPX_N);
-
-    uint8_t hmac_sha256_out[32];
-    hmac_sha256(hmac_sha256_out, sk_seed, SPX_N, "abc", 3);
-    uarte0_hex("hmac_sha256", hmac_sha256_out, 32);
-}
 
 void test_common()
 {
@@ -41,7 +15,6 @@ void test_common()
     uarte0_hex("S", S, sizeof(S) / sizeof(S[0]));
 
     test_rng();
-    test_hmac_sha256();
 }
 
 static void test_rng()

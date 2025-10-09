@@ -22,7 +22,7 @@ OBJS := addr_compressed.o thf.o common.o addr.o \
         chain.o base_2b.o keygen.o sha256.o \
         slh_dsa_sign.o fors_sign.o fors_sk_gen.o
 
-OBJS += xmss_sign.o wots_plus.o psa_crypto.o
+OBJS += xmss_sign.o wots_plus.o psa_crypto.o hmac_sha256.o
 
 CC := arm-none-eabi-gcc
 
@@ -32,10 +32,10 @@ ifeq ($(TARGET),nrf52840)
   LDS  := $(PLATFORM)/linker.ld
   CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra \
-            -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections \
-            -I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include \
-            -I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include \
-            -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
+            -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections 
+            #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_bl/include 
+            #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include 
+            #-I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive \
              -Wl,--no-whole-archive -specs=nano.specs -nostartfiles
   ELF := sign_nrf52840.elf
@@ -49,8 +49,8 @@ else ifeq ($(TARGET),nrf5340dk)
   STARTUP := $(PLATFORM)/startup.c
   LDS  := $(PLATFORM)/linker.ld
   CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
-            -ffreestanding -Wall -Wextra -Wl,--gc-sections  \
-            -I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
+            -ffreestanding -Wall -Wextra -Wl,--gc-sections  
+            #-I$(NRFXLIB_DIR)/crypto/nrf_oberon/include
   LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340dk.map -specs=nano.specs -nostartfiles
   ARCH_DIR   := cortex-m33+nodsp
   FLOAT_DIR  := soft-float
@@ -78,8 +78,10 @@ ifneq ($(NRF_CC_BACKEND),)
 CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
 endif
 
-SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c main.c \
-        keygen.c $(SHA256) uart_min.c slh_dsa_sign.c \
+SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c \
+        main.c \
+        keygen.c $(SHA256) unsafe/hmac_sha256.c \
+        uart_min.c slh_dsa_sign.c \
         base_2b.c addr_compressed.c addr.c \
         xmss_sign.c wots_plus.c \
         common.c fors_sk_gen.c thf.c fors_sign.c chain.c
@@ -90,6 +92,9 @@ WORKDIR     ?= $(shell pwd)
 RESC        ?= run_sign.resc
 
 RNG_OBJS := $(RNG_SRC:.c=.o)
+
+hmac_sha256.o: unsafe/hmac_sha256.c
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 psa_crypto.o: unsafe/psa_crypto.c
 	$(CC) $(CFLAGS) -c $^ -o $@
@@ -107,7 +112,7 @@ else
 
 endif
 
-OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
+#OBERON_LIB := $(NRFXLIB_DIR)/crypto/nrf_oberon/lib/$(strip $(ARCH_DIR))/$(strip $(FLOAT_DIR))/liboberon_3.0.17.a
 
 all: sign.elf
 
