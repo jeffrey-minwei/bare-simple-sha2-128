@@ -100,3 +100,64 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
 
     return PSA_SUCCESS;
 }
+
+static void compress_adrs(uint8_t c[22], const ADRS adrs)
+{
+    // ADRS𝑐 = ADRS[3] ∥ ADRS[8 ∶ 16] ∥ ADRS[19] ∥ ADRS[20 ∶ 32]
+    c[0] = adrs[3];
+    memcpy(c, adrs, 1);   // ADRS[3]
+
+    memcpy(c + 1, adrs + 8, 8);   // ADRS[8 ∶ 16], len is 8
+    c[9] = adrs[19];              // ... ∥ ADRS[19]
+
+    memcpy(c + 10, adrs + 20, 12);  //  ∥ ADRS[20 ∶ 32], len is 12
+}
+
+/**
+ * Based on the SPHINCS+ reference implementation: https://github.com/sphincs/sphincsplus/blob/master/ref/hash_sha2.c#L39
+ *
+ * PRF(PK.seed, SK.seed, ADRS) = Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed))
+ *
+ * n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
+ * p_pk_seed and p_sk_seed both are pointer to the first element of an array of length at least 16.
+ */
+void _prf(uint8_t out[SPX_N], const psa_key_it_t pk_seed_key_id, const psa_key_it_t sk_seed_key_id, const ADRS adrs)
+{    
+    // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
+
+    if (pk_seed_key_id == NULL || sk_seed_key_id == NULL || adrs == NULL || out == NULL)
+    {
+        return;
+    }
+
+    //
+    // PRF(PK.seed, SK.seed, ADRS) = Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed))
+    //
+
+    // size of PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed
+    int size = 64 + 22 + SPX_N;  // ADRS_c is an array which length is 22
+    unsigned char combined[size];
+
+    // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
+    memcpy(combined, pk_seed, SPX_N);
+    
+    // PK.seed ∥ toByte(0, 64 − n)
+    memset(combined + SPX_N, 0, (64 - SPX_N));
+
+    // ADRSc is a 22 bytes array
+    uint8_t adrs_c[22];
+    compress_adrs(adrs_c, adrs);
+
+    // PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c
+    memcpy(combined + 64, adrs_c, sizeof(adrs_c));
+
+    // PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed
+    memcpy(combined + 64 + sizeof(adrs_c), sk_seed, SPX_N);
+
+    // SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed)
+    uint8_t out32[32];
+    sha256(combined, sizeof(combined), out32);
+
+    // Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed))
+    memcpy(out, out32, SPX_N);
+}
