@@ -114,7 +114,7 @@ int main(void)
     }
 
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_set_key_id(&attributes, 1)
+    psa_set_key_id(&attributes, 1);
     psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_PERSISTENT);
 
     psa_key_id_t key_id;
