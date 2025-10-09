@@ -29,8 +29,7 @@ CC := arm-none-eabi-gcc
 ifeq ($(TARGET),nrf52840)
   PLATFORM := platforms/nrf52840
   CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 \
-            -ffreestanding -Wall -Wextra \
-            -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections 
+            -ffreestanding -Wall -Wextra 
             #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include 
   LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf52840.map \
              -specs=nano.specs -nostartfiles
@@ -42,7 +41,7 @@ ifeq ($(TARGET),nrf52840)
 else ifeq ($(TARGET),nrf5340dk)
   PLATFORM := platforms/nrf5340dk
   CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
-            -ffreestanding -Wall -Wextra -Wl,--gc-sections 
+            -ffreestanding -Wall -Wextra 
   LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf5340dk.map \
              -specs=nano.specs -nostartfiles
   ARCH_DIR   := cortex-m33+nodsp
