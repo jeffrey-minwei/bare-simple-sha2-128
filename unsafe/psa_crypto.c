@@ -5,7 +5,7 @@
 #include "../kat/rng.h"
 #include "../params.h"
 #include "../xmss_sign.h"
-#include "../platforms/sha256.h"
+#include "../sha256.h"
 
 // 檔案作用域靜態儲存期（同檔可見）
 static uint8_t sk_seed[SPX_N] = {0};
