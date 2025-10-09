@@ -80,7 +80,7 @@ endif
 
 SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c \
         main.c \
-        keygen.c $(SHA256) unsafe\hmac_sha256.c \
+        keygen.c $(SHA256) unsafe/hmac_sha256.c \
         uart_min.c slh_dsa_sign.c \
         base_2b.c addr_compressed.c addr.c \
         xmss_sign.c wots_plus.c \
