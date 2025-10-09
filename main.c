@@ -57,6 +57,31 @@ void uarte0_hex_all(const char *label, const uint8_t *buf, size_t len) {
     }
 }
 
+void test_psa_hash_compute()
+{
+    static const char abc[] = "abc";
+    uint8_t out32[32];
+    sha256(abc, sizeof(abc) - 1, out32);
+    psa_status_t status = psa_hash_compute(PSA_ALG_SHA_256, 
+                                           abc, 
+                                           sizeof(abc) - 1, 
+                                           out32, 
+                                           sizeof(out32), 
+                                           PSA_HASH_LENGTH(PSA_ALG_SHA_256));
+    if (status != PSA_SUCCESS) { 
+        uarte0_puts("psa_hash_compute fail");
+        for(;;);  // 失敗停在這裡
+    }
+    else
+    {
+        uarte0_puts("psa_hash_compute success");
+    }
+}
+
+void test_psa_mac_compute()
+{
+
+}
 
 int main(void)
 {
@@ -80,7 +105,9 @@ int main(void)
     // Both SK.seed and SK.prf shall be generated using an approved random bit generator
     uarte0_puts("sk_seed, pk_seed and sk_prf generate success\n");
 
-    test_sha256();
+    test_psa_hash_compute();
+    test_psa_mac_compute();
+
     test_common();
 
     // TODO keygen() -> sign()

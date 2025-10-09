@@ -5,6 +5,7 @@
 #include "../kat/rng.h"
 #include "../params.h"
 #include "../xmss_sign.h"
+#include "../platforms/sha256.h"
 
 // 檔案作用域靜態儲存期（同檔可見）
 static uint8_t sk_seed[SPX_N] = {0};
@@ -67,6 +68,18 @@ psa_status_t psa_generate_key(const psa_key_attributes_t * attributes,
     unsigned int h_prime = 9;
     // PK.root ← xmss_node(SK.seed, 0, ℎ′, PK.seed, ADRS)
     xmss_node(pk_root, sk_seed, 0, h_prime, pk_seed, adrs);
+
+    return PSA_SUCCESS;
+}
+
+psa_status_t psa_hash_compute(psa_algorithm_t alg,
+                              const uint8_t * input,
+                              size_t input_length,
+                              uint8_t * hash,
+                              size_t hash_size,
+                              size_t * hash_length)
+{
+    sha256(input, input_length, hash);
 
     return PSA_SUCCESS;
 }
