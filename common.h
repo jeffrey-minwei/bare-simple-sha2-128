@@ -1,9 +1,11 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <stdint.h>
-
 #include "params.h"
+#include "psa/crypto.h"
+
+#include <stdint.h>
+#include <string.h>
 
 void test_common();
 
@@ -46,6 +48,11 @@ void toByte(const unsigned long long x, const unsigned int n, unsigned char *pS)
  * n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
  */
 void prf(const uint8_t pk_seed[SPX_N], const uint8_t sk_seed[SPX_N], const ADRS adrs, uint8_t out[SPX_N]);
+
+/**
+ * Implemented in unsafe/psa_crypto.c
+ */
+void _prf(uint8_t out[SPX_N], const psa_key_id_t pk_seed_key_id, const psa_key_id_t sk_seed_key_id, const ADRS adrs);
 
 #endif
 
