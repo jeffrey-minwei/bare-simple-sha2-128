@@ -32,8 +32,7 @@ ifeq ($(TARGET),nrf52840)
             -ffreestanding -Wall -Wextra \
             -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections 
             #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include 
-  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf52840.map -Wl,--whole-archive \
-             -Wl,--no-whole-archive \
+  LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf52840.map \
              -specs=nano.specs -nostartfiles
   ELF := sign_nrf52840.elf
   # NRF_CC_BACKEND := nrf_cc310_mbedcrypto
@@ -44,7 +43,7 @@ else ifeq ($(TARGET),nrf5340dk)
   PLATFORM := platforms/nrf5340dk
   CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra -Wl,--gc-sections 
-  LDFLAGS := -T $(LDS) -Wl,-Map,sign_nrf5340dk.map \
+  LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf5340dk.map \
              -specs=nano.specs -nostartfiles
   ARCH_DIR   := cortex-m33+nodsp
   ELF := sign_nrf5340dk.elf
@@ -54,7 +53,6 @@ else ifeq ($(TARGET),nrf5340dk)
 endif
 
 STARTUP := $(PLATFORM)/startup.c
-LDS  := $(PLATFORM)/linker.ld
 FLOAT_DIR  := soft-float
 
 #SHA256 := $(PLATFORM)/sha256.c
@@ -112,7 +110,7 @@ endif
 
 all: sign.elf
 
-sign.elf:  $(LDS) $(OBJS) $(RNG_OBJS)
+sign.elf:  $(PLATFORM)/linker.ld $(OBJS) $(RNG_OBJS)
 	@echo "==> start building with $(CC), output should be $(ELF)"
 	$(CC) $(CFLAGS) $(SRCS) -v $(LDFLAGS) -o $(ELF)
 	$(NM) $(ELF) | grep -E 'memcpy|__aeabi_memcpy'
