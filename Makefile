@@ -22,7 +22,7 @@ OBJS := addr_compressed.o thf.o common.o addr.o \
         chain.o base_2b.o keygen.o sha256.o \
         slh_dsa_sign.o fors_sign.o fors_sk_gen.o
 
-OBJS += xmss_sign.o wots_plus.o psa_crypto.o
+OBJS += xmss_sign.o wots_plus.o psa_crypto.o hmac_sha256.o
 
 CC := arm-none-eabi-gcc
 
@@ -78,8 +78,10 @@ ifneq ($(NRF_CC_BACKEND),)
 CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
 endif
 
-SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c main.c \
-        keygen.c $(SHA256) uart_min.c slh_dsa_sign.c \
+SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c \
+        main.c \
+        keygen.c $(SHA256) unsafe\hmac_sha256.c \
+        uart_min.c slh_dsa_sign.c \
         base_2b.c addr_compressed.c addr.c \
         xmss_sign.c wots_plus.c \
         common.c fors_sk_gen.c thf.c fors_sign.c chain.c
@@ -90,6 +92,9 @@ WORKDIR     ?= $(shell pwd)
 RESC        ?= run_sign.resc
 
 RNG_OBJS := $(RNG_SRC:.c=.o)
+
+hmac_sha256.o: unsafe/hmac_sha256.c
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 psa_crypto.o: unsafe/psa_crypto.c
 	$(CC) $(CFLAGS) -c $^ -o $@
