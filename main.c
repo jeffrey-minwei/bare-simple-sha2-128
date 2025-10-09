@@ -59,7 +59,7 @@ void uarte0_hex_all(const char *label, const uint8_t *buf, size_t len) {
 
 void test_psa_hash_compute()
 {
-    static const char abc[] = "abc";
+    const char abc[] = "abc";
     uint8_t out32[32];
     sha256(abc, sizeof(abc) - 1, out32);
     psa_status_t status = psa_hash_compute(PSA_ALG_SHA_256, 
@@ -74,13 +74,28 @@ void test_psa_hash_compute()
     }
     else
     {
-        uarte0_puts("psa_hash_compute success");
+        uarte0_puts("psa_hash_compute success\n");
     }
 }
 
-void test_psa_mac_compute()
+void test_psa_mac_compute(psa_key_id_t key_id)
 {
-
+    const char abc[] = "abc";
+    uint8_t mac[32]; 
+    size_t mac_len = 0;
+    psa_status_t status = psa_mac_compute(key_id, 
+                                          PSA_ALG_HMAC(PSA_ALG_SHA_256), 
+                                          abc, sizeof(abc) - 1, 
+                                          mac, sizeof(mac),
+                                          &mac_len);
+    if (status != PSA_SUCCESS) { 
+        uarte0_puts("psa_mac_compute fail");
+        for(;;);  // 失敗停在這裡
+    }
+    else
+    {
+        uarte0_puts("psa_mac_compute success\n");
+    }
 }
 
 int main(void)
@@ -97,7 +112,12 @@ int main(void)
         for(;;);  // 失敗停在這裡
     }
 
-    status = psa_generate_key(NULL, NULL);
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_set_key_id(&attributes, 1)
+    psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_PERSISTENT);
+
+    psa_key_id_t key_id;
+    status = psa_generate_key(&attributes, &key_id);
     if (status != PSA_SUCCESS) { 
         uarte0_puts("psa_generate_key fail");
         for(;;);  // 失敗停在這裡
@@ -106,7 +126,7 @@ int main(void)
     uarte0_puts("sk_seed, pk_seed and sk_prf generate success\n");
 
     test_psa_hash_compute();
-    test_psa_mac_compute();
+    test_psa_mac_compute(key_id);
 
     test_common();
 
