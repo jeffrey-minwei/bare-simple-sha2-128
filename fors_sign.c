@@ -1,6 +1,5 @@
 #include "common.h"
 #include "fors_sign.h"
-#include "fors_sk_gen.h"
 #include "thf.h"
 #include "uart_min.h"
 #include "base_2b.h"

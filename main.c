@@ -6,7 +6,6 @@
 #include "keygen.h"
 #include "sha256.h"
 #include "slh_dsa_sign.h"
-#include "fors_sk_gen.h"
 
 #include <stdint.h>
 #include <stddef.h>
