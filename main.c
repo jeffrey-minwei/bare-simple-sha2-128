@@ -117,21 +117,32 @@ int main(void)
     psa_set_key_id(&attributes, 1);
     psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_PERSISTENT);
 
-    psa_key_id_t key_id;
-    status = psa_generate_key(&attributes, &key_id);
+    psa_key_id_t sk_key_id;
+    status = psa_generate_key(&attributes, &sk_key_id);
     if (status != PSA_SUCCESS) { 
-        uarte0_puts("psa_generate_key fail");
+        uarte0_puts("psa_generate_key private key fail");
         for(;;);  // 失敗停在這裡
     }
-    // Both SK.seed and SK.prf shall be generated using an approved random bit generator
+
+    psa_key_id_t sk_prf_key_id;
+    status = psa_generate_key(&attributes, &sk_prf_key_id);
+    if (status != PSA_SUCCESS) { 
+        uarte0_puts("psa_generate_key sk prf fail");
+        for(;;);  // 失敗停在這裡
+    }
+
+    psa_key_id_t pk_key_id;
+    status = psa_generate_key(&attributes, &pk_key_id);
+    if (status != PSA_SUCCESS) { 
+        uarte0_puts("psa_generate_key public key fail");
+        for(;;);  // 失敗停在這裡
+    }
 
     test_psa_hash_compute();
-    test_psa_mac_compute(key_id);
+    test_psa_mac_compute(pk_key_id);
 
     test_common();
 
-    // TODO keygen() -> sign()
-    // TODO print pk, sig.sha256, sig.len
     uint8_t sig[SPX_BYTES];
     uint8_t optrand[SPX_N];
     
@@ -141,7 +152,7 @@ int main(void)
     // 開簽
     const uint8_t msg[] = "Hello SLH-DSA";  
     size_t msg_len = sizeof(msg) - 1;   // 不含結尾 \0
-    //slh_dsa_sign(sig, sk, pk, msg, msg_len, optrand);
+    slh_dsa_sign(sig, sk_key_id, sk_prf_key_id, pk_key_id, msg, msg_len, optrand);
 
     //uarte0_hex_all("SLH-DSA Signature", sig, SPX_BYTES);
     

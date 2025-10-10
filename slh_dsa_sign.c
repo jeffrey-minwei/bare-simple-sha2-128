@@ -37,32 +37,22 @@ static void prf_msg(uint8_t R[SPX_N],
     memcpy(R, hmac_sha256_out, SPX_N);
 }
 
-/* 主簽章：把 R、FORS、各層 WOTS+ 與 auth path 串起來 */
 int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
-                 const uint8_t sk[SPX_SK_BYTES],
-                 const uint8_t pk[SPX_PK_BYTES],
+                 const psa_key_id_t sk_key_id,
+                 const psa_key_id_t sk_prf_key_id,
+                 const psa_key_id_t pk_key_id,
                  const uint8_t *m, size_t mlen,
                  const uint8_t optrand[SPX_N])
 {
-    const uint8_t *SK_SEED  = sk + 0*SPX_N;
-    const uint8_t *SK_PRF   = sk + 1*SPX_N;
-    const uint8_t *PUB_SEED = sk + 2*SPX_N;
-
     uint8_t *p = sig_out;
 
     uint8_t R[SPX_N];
     // 𝑅 ← PRF_𝑚𝑠𝑔(SK.prf, 𝑜𝑝𝑡_𝑟𝑎𝑛𝑑, 𝑀 )
-    // TODO sk_prf_key_id should be passed from parameter of slh_dsa_sign
-    psa_key_id_t sk_prf_key_id;
     prf_msg(R, sk_prf_key_id, optrand, m, mlen);
     memcpy(p, R, SPX_N);
     p += SPX_N;
 
     uint8_t node[SPX_N];
-    // TODO sk_seed should be passed from parameter of slh_dsa_sign
-    // TODO pk_seed should be passed from parameter of slh_dsa_sign
-    psa_key_id_t sk_key_id;
-    psa_key_id_t pk_key_id;
 
     // 5: 𝑑𝑖𝑔𝑒𝑠𝑡 ← H𝑚𝑠𝑔(𝑅, PK.seed, PK.root, 𝑀 ) ▷ compute message digest
     uint8_t out[SPX_M];
