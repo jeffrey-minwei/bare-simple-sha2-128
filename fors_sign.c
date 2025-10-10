@@ -155,7 +155,7 @@ void fors_node(uint8_t out[SPX_N],
     {
         // 2: 𝑠𝑘 ← fors_skGen(SK.seed, PK.seed, ADRS, 𝑖)
         uint8_t sk[SPX_N];
-        fors_sk_gen(sk, sk_seed, pk_seed, adrs, i);
+        fors_sk_gen(sk, sk_seed_key_id, pk_seed_key_id, adrs, i);
 
         // 3: ADRS.setTreeHeight(0)
         set_tree_height(adrs, 0);
@@ -164,15 +164,15 @@ void fors_node(uint8_t out[SPX_N],
         set_tree_index(adrs, i);
 
         // 5: 𝑛𝑜𝑑𝑒 ← F(PK.seed, ADRS, 𝑠𝑘)
-        F(pk_seed, adrs, sk, out);
+        F(pk_seed_key_id, adrs, sk, out);
     }
     else
     {
         uint8_t lnode[SPX_N];
-        fors_node(lnode, sk_seed, 2*i, z - 1, pk_seed, adrs);
+        fors_node(lnode, sk_seed_key_id, 2*i, z - 1, pk_seed_key_id, adrs);
 
         uint8_t rnode[SPX_N];
-        fors_node(rnode, sk_seed, 2*i + 1, z - 1, pk_seed, adrs);
+        fors_node(rnode, sk_seed_key_id, 2*i + 1, z - 1, pk_seed_key_id, adrs);
 
         // 9:   ADRS.setTreeHeight(𝑧)
         set_tree_height(adrs, z);
@@ -181,7 +181,7 @@ void fors_node(uint8_t out[SPX_N],
 
         uint8_t l_add_r[2*SPX_N];
         // 11:  𝑛𝑜𝑑𝑒 ← H(PK.seed, ADRS, 𝑙𝑛𝑜𝑑𝑒 ∥ 𝑟𝑛𝑜𝑑𝑒)
-        H(pk_seed, adrs, l_add_r, out);
+        H(pk_seed_key_id, adrs, l_add_r, out);
     }
 }
 
