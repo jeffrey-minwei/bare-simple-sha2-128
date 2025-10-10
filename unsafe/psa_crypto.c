@@ -179,7 +179,7 @@ void h_msg(uint8_t out[SPX_M], // 𝑚 is 30 for SLH-DSA-SHA2-128s
 
     // 𝑚 is 30 for SLH-DSA-SHA2-128s
     // MGF1-SHA-256(𝑅 ∥ PK.seed ∥ SHA-256(...), 𝑚)
-    uint8_t in[SPX_N + SPX_PK_BYTES + 32];
+    uint8_t in[SPX_N * 2 + 32];
     p = (uint8_t *)(in[0]);
 
     // 𝑅 ∥ PK.seed ∥ SHA-256(...)
