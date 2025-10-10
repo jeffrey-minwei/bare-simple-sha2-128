@@ -73,9 +73,7 @@ psa_status_t create_sk_prf(psa_key_id_t desired_id, psa_key_id_t *sk_prf_key_id)
     psa_set_key_usage_flags(&attr, PSA_KEY_USAGE_SIGN_MESSAGE);
     psa_set_key_id(&attr, desired_id);
 
-    psa_status_t st = psa_generate_key(&attr, sk_prf_key_id);
-    psa_reset_key_attributes(&attr);
-    return st;
+    return psa_generate_key(&attr, sk_prf_key_id);
 }
 
 void generate_key(psa_key_id_t *p_sk_seed_key_id, 
