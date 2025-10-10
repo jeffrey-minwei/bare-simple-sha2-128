@@ -43,8 +43,8 @@ line 2: base_2b(md, a, k, p_indices), a will be 6, 8, 9, 12 or 14
 size_t fors_sign(uint8_t *sig_ptr, 
                  uint8_t fors_root[SPX_N],
                  const uint8_t mhash[SPX_FORS_MSG_BYTES],
-                 const uint8_t *p_sk_seed, 
-                 const uint8_t *p_pk_seed,
+                 const psa_key_id_t sk_seed, 
+                 const psa_key_id_t pk_seed,
                  uint64_t tree_idx, 
                  uint32_t leaf_idx)
 {
@@ -83,7 +83,7 @@ size_t fors_sign(uint8_t *sig_ptr,
     // 把 mhash 做一次 sha256 當成 fors_root; 簽章長度回傳 0
     sha256(mhash, SPX_FORS_MSG_BYTES, h);
     memcpy(fors_root, h, SPX_N);
-    (void)sig_ptr; (void)p_sk_seed; (void)p_pk_seed; (void)tree_idx; (void)leaf_idx;
+    (void)sig_ptr; (void)sk_seed; (void)pk_seed; (void)tree_idx; (void)leaf_idx;
 
     // TODO not implemented yet
     return 0;

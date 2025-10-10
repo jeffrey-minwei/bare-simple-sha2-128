@@ -12,7 +12,7 @@
 // SPX_N, SPX_SK_BYTES, SPX_PK_BYTES, SPX_BYTES, SPX_FULL_HEIGHT, SPX_D, SPX_FORS_MSG_BYTES
 
 static void prf_msg(uint8_t R[SPX_N],
-                    psa_key_id_t key_id,
+                    psa_key_id_t sk_prf_key_id,
                     const uint8_t optrand[SPX_N],
                     const uint8_t *m, 
                     size_t mlen)
@@ -24,7 +24,7 @@ static void prf_msg(uint8_t R[SPX_N],
     uint8_t hmac_sha256_out[32];
     size_t mac_len = 0;
     //hmac_sha256(hmac_sha256_out, sk_prf, SPX_N, opt_rand_M, sizeof(opt_rand_M));
-    psa_status_t status = psa_mac_compute(key_id, 
+    psa_status_t status = psa_mac_compute(sk_prf_key_id, 
                                           PSA_ALG_HMAC(PSA_ALG_SHA_256), 
                                           opt_rand_M, sizeof(opt_rand_M) - 1, 
                                           hmac_sha256_out, sizeof(hmac_sha256_out),
@@ -90,19 +90,11 @@ static void h_msg(uint8_t mhash[SPX_FORS_MSG_BYTES],
     *leaf_idx = leaf;
 }
 
-size_t wots_sign_and_auth(uint8_t *sig_ptr,
-                          uint8_t next_root[SPX_N],
-                          const uint8_t msgpk[SPX_N],
-                          const uint8_t sk_seed[SPX_N],
-                          const uint8_t pub_seed[SPX_N],
-                          uint64_t tree_idx,
-                          uint32_t leaf_idx,
-                          unsigned subtree_height);
-
 // fake WOTS+：對 node 做 sha256 當作 next_root；簽章/auth 一律長度 0
 size_t wots_sign_and_auth(uint8_t *sig_ptr, uint8_t next_root[SPX_N],
                           const uint8_t msgpk[SPX_N],
-                          const uint8_t *sk_seed, const uint8_t *pub_seed,
+                          const psa_key_id_t sk_seed, 
+                          const psa_key_id_t pk_seed,
                           uint64_t tree_idx, uint32_t leaf_idx, unsigned subtree_height)
 {
     uint8_t h[32];
@@ -127,8 +119,10 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
 
     // 1) R
     uint8_t R[SPX_N];
-    psa_key_id_t key_id;
-    prf_msg(R, key_id, optrand, m, mlen);
+
+    // TODO sk_prf_key_id should be passed from parameter of slh_dsa_sign
+    psa_key_id_t sk_prf_key_id;
+    prf_msg(R, sk_prf_key_id, optrand, m, mlen);
     memcpy(p, R, SPX_N); p += SPX_N;
 
     // 2) H_msg
@@ -138,7 +132,11 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
 
     // 3) FORS.sign -> fors_root
     uint8_t node[SPX_N];
-    size_t used = fors_sign(p, node, mhash, SK_SEED, PUB_SEED, tree_idx, leaf_idx);
+    // TODO sk_seed should be passed from parameter of slh_dsa_sign
+    // TODO pk_seed should be passed from parameter of slh_dsa_sign
+    psa_key_id_t sk_seed;
+    psa_key_id_t pk_seed;
+    size_t used = fors_sign(p, node, mhash, sk_seed, pk_seed, tree_idx, leaf_idx);
     p += used;
 
     // 4) D 層循環：每層 WOTS+.sign(node) + auth_path，計算到上一層 root
@@ -150,7 +148,7 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
         uint32_t leaf = (uint32_t)(leaf_idx & ((1u<<h)-1u));
         uint64_t tree = tree_idx;
 
-        used = wots_sign_and_auth(p, node, node, SK_SEED, PUB_SEED, tree, leaf, h);
+        used = wots_sign_and_auth(p, node, node, sk_seed, pk_seed, tree, leaf, h);
         p += used;
 
         leaf_idx >>= h;

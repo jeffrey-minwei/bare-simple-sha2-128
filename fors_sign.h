@@ -24,8 +24,8 @@
 size_t fors_sign(uint8_t *sig_ptr, 
                  uint8_t fors_root[SPX_N],
                  const uint8_t mhash[SPX_FORS_MSG_BYTES],
-                 const uint8_t *p_sk_seed, 
-                 const uint8_t *p_pk_seed,
+                 const psa_key_id_t sk_seed, 
+                 const psa_key_id_t pk_seed,
                  uint64_t tree_idx, 
                  uint32_t leaf_idx);
 

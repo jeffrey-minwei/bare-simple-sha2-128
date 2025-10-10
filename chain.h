@@ -9,6 +9,6 @@ void chain(uint8_t out[SPX_N],
            const uint8_t X[SPX_N], 
            const uint8_t i,
            const uint8_t s,
-           const unsigned char pk_seed[SPX_N], 
+           const psa_key_id_t pk_seed, 
            ADRS adrs);
 #endif

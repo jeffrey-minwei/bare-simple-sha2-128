@@ -1,6 +1,7 @@
 #ifndef SLH_DSA_SIGN_H
 #define SLH_DSA_SIGN_H
 
+#include "common.h"
 #include "keygen.h"
 #include <stddef.h>
 

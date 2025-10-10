@@ -124,7 +124,6 @@ int main(void)
         for(;;);  // 失敗停在這裡
     }
     // Both SK.seed and SK.prf shall be generated using an approved random bit generator
-    uarte0_puts("sk_seed, pk_seed and sk_prf generate success\n");
 
     test_psa_hash_compute();
     test_psa_mac_compute(key_id);

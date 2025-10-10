@@ -29,8 +29,8 @@ void test_wots_plus()
  * @return void
  */
 void wots_pk_gen(uint8_t pk[SPX_N],
-                 const unsigned char sk_seed[SPX_N], 
-                 const unsigned char pk_seed[SPX_N], 
+                 const psa_key_id_t sk_seed, 
+                 const psa_key_id_t pk_seed, 
                  ADRS adrs)
 {
     ADRS skADRS;
@@ -58,7 +58,7 @@ void wots_pk_gen(uint8_t pk[SPX_N],
         set_chain_addr(skADRS, (unsigned long long)i);
 
         // 6:     𝑠𝑘 ← PRF(PK.seed, SK.seed, skADRS)          ▷ compute secret value for chain i
-        prf(pk_seed, sk_seed, skADRS, sk);
+        _prf(sk, pk_seed, sk_seed, skADRS);
 
         // 7:     ADRS.setChainAddress(𝑖) 
         set_chain_addr(adrs, i);
@@ -89,8 +89,8 @@ static size_t bytes_for_len2_lgw(size_t len2, size_t lgw) {
  */
 void wots_sign(N_BYTES out[SPX_LEN],
                const uint8_t M[SPX_N], 
-               const unsigned char sk_seed[SPX_N], 
-               const unsigned char pk_seed[SPX_N], 
+               const psa_key_id_t sk_seed, 
+               const psa_key_id_t pk_seed, 
                ADRS adrs)
 {
     // 𝑐𝑠𝑢𝑚 ← 0
@@ -144,7 +144,7 @@ void wots_sign(N_BYTES out[SPX_LEN],
         set_chain_addr(skADRS, i);
 
         // 𝑠𝑘 ← PRF(PK.seed, SK.seed, skADRS) ▷ compute chain 𝑖 secret value
-        prf(pk_seed, sk_seed, skADRS, sk);
+        _prf(sk, pk_seed, sk_seed, skADRS);
 
         // ADRS.setChainAddress(𝑖)
         set_chain_addr(adrs, i);

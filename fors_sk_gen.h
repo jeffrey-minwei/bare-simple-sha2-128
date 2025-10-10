@@ -5,8 +5,8 @@
 
 #include <stdint.h>
 
-void fors_sk_gen(const uint8_t *p_sk_seed, 
-                 const uint8_t *p_pk_seed, 
+void fors_sk_gen(const psa_key_id_t sk_seed, 
+                 const psa_key_id_t pk_seed, 
                  const ADRS adrs, 
                  const unsigned int idx,
                  unsigned char *out);

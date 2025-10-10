@@ -151,3 +151,8 @@ void _prf(uint8_t out[SPX_N], const psa_key_id_t pk_seed_key_id, const psa_key_i
     // Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed))
     memcpy(out, out32, SPX_N);
 }
+
+uint8_t * get_pk_seed()
+{
+    return (uint8_t *)pk_seed;
+}

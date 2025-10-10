@@ -15,7 +15,7 @@
 //  𝑛𝑜𝑑𝑒 ← F(PK.seed, ADRS, 𝑠𝑘)
 //  𝑛𝑜𝑑𝑒 ← H(PK.seed, ADRS, 𝑙𝑛𝑜𝑑𝑒 ∥ 𝑟𝑛𝑜𝑑𝑒)
 
-void T(unsigned int len, const uint8_t pk_seed[SPX_N], ADRS adrs, const uint8_t *p_M, uint8_t out[SPX_N])
+void T(unsigned int len, const psa_key_id_t pk_seed_key_id, ADRS adrs, const uint8_t *p_M, uint8_t out[SPX_N])
 {
     // See Page 11, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
     // Tℓ(PK.seed, ADRS, 𝑀ℓ) 
@@ -29,10 +29,12 @@ void T(unsigned int len, const uint8_t pk_seed[SPX_N], ADRS adrs, const uint8_t 
     unsigned int mlen = len * SPX_N;
     unsigned int size = 64 + 22 + mlen;
     uint8_t buf[size];
-   
+
+    uint8_t * pk_seed = get_pk_seed();
+
     // PK.seed ∥ toByte(0, 64 − n)
 
-    // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
+    // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f   
 
     // buf <- PK.seed ∥ toByte(0, 64 − 𝑛) ∥ ADRS𝑐 ∥ 𝑀ℓ
     memcpy(buf, pk_seed, SPX_N);
@@ -59,13 +61,13 @@ void T(unsigned int len, const uint8_t pk_seed[SPX_N], ADRS adrs, const uint8_t 
 }
 
 // F: len = 1
-void F(const uint8_t pk_seed[SPX_N], ADRS adrs, const uint8_t M[16], uint8_t out[SPX_N])
+void F(const psa_key_id_t pk_seed, ADRS adrs, const uint8_t M[16], uint8_t out[SPX_N])
 {
     T(1, pk_seed, adrs, (uint8_t *)M[0], out);
 }
 
 // H: len = 2
-void H(const uint8_t pk_seed[SPX_N], ADRS adrs, const uint8_t M[32], uint8_t out[SPX_N])
+void H(const psa_key_id_t pk_seed, ADRS adrs, const uint8_t M[32], uint8_t out[SPX_N])
 {
     T(2, pk_seed, adrs, (uint8_t *)M[0], out);
 }

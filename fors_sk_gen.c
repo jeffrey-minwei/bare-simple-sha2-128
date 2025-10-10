@@ -17,8 +17,8 @@ Output: n-byte FORS private-key value.
 4: skADRS.setTreeIndex(idx)
 5: return PRF(PK.seed, SK.seed,skADRS)
 */
-void fors_sk_gen(const uint8_t *p_sk_seed, 
-                 const uint8_t *p_pk_seed, 
+void fors_sk_gen(const psa_key_id_t sk_seed, 
+                 const psa_key_id_t pk_seed, 
                  const ADRS adrs, 
                  const unsigned int idx,
                  unsigned char *out)
@@ -32,7 +32,7 @@ void fors_sk_gen(const uint8_t *p_sk_seed,
     set_tree_index(adrs, idx);
 
     // unsigned char out[16];
-    prf(p_pk_seed, p_sk_seed, adrs, out);
+    _prf(out, pk_seed, sk_seed, adrs);
 
     uarte0_puts("fors_sk_gen DONE\n");
 }
@@ -40,8 +40,8 @@ void fors_sk_gen(const uint8_t *p_sk_seed,
 void test_fors_sk_gen()
 {
     int n = 16;
-    const uint8_t sk_seed[16];
-    const uint8_t pk_seed[16];
+    const psa_key_id_t sk_seed;
+    const psa_key_id_t pk_seed
     const ADRS adrs;
 
     unsigned int type = 4;  // FORS_ROOTS)
@@ -54,7 +54,7 @@ void test_fors_sk_gen()
     set_tree_index(adrs, index);
     
     unsigned char out[16];
-    prf(pk_seed, sk_seed, adrs, out);
+    _prf(out, pk_seed, sk_seed, adrs);
 
     fors_sk_gen(sk_seed, pk_seed, adrs, index, out);
 

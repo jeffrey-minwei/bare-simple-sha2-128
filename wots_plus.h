@@ -13,7 +13,7 @@ void test_wots_plus();
  * @return void
  */
 void wots_pk_gen(uint8_t pk[SPX_N],
-                 const unsigned char sk_seed[SPX_N], 
+                 const psa_key_id_t sk_seed, 
                  const unsigned char pk_seed[SPX_N], 
                  ADRS adrs);
 
@@ -22,7 +22,7 @@ void wots_pk_gen(uint8_t pk[SPX_N],
  */
 void wots_sign(N_BYTES out[SPX_LEN],
                const uint8_t M[SPX_N], 
-               const unsigned char sk_seed[SPX_N], 
+               const psa_key_id_t sk_seed, 
                const unsigned char pk_seed[SPX_N], 
                ADRS adrs);
 
