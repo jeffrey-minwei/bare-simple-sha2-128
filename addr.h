@@ -14,10 +14,12 @@ void test_addr();
 void set_layer_addr(ADRS adrs, unsigned int layer);
 
 void set_tree_height(ADRS adrs, unsigned long long i);
+
 void set_type_and_clear(ADRS adrs, unsigned int Y);
 unsigned long long get_key_pair_addr(ADRS adrs);
 void set_key_pair_addr(ADRS adrs, unsigned long long i);
 void set_chain_addr(ADRS adrs, unsigned long long i);
+void set_tree_addr(ADRS adrs, unsigned long long i);
 void set_hash_addr(ADRS adrs, unsigned long long i);
 void set_tree_index(ADRS adrs, unsigned int i);
 

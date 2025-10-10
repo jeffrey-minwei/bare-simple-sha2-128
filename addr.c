@@ -2,6 +2,8 @@
 #include "addr.h"
 #include "uart_min.h"
 
+#include <string.h>
+
 void test_addr()
 {
     unsigned char S[4];
@@ -124,6 +126,11 @@ void set_chain_addr(ADRS adrs, unsigned long long i)
         // ADRS[24:28], ADRS[24, 25, 26, 27]
         memcpy(adrs + 24, chain_addr, 4);   // 24, 25, 26, 27
     }
+}
+
+void set_tree_addr(ADRS adrs, unsigned long long i)
+{
+    // TODO
 }
 
 /**
