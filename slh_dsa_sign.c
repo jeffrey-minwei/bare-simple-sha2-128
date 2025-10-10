@@ -68,6 +68,7 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
     uint8_t out[SPX_M];
     h_msg(out, R, pk_key_id, m, mlen);
 
+    uint8_t mhash[SPX_FORS_MSG_BYTES];
     uint64_t tree_idx;
     uint32_t leaf_idx;
     // 14: SIG_FORS ← fors_sign(𝑚𝑑, SK.seed, PK.seed, ADRS)
