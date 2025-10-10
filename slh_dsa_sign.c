@@ -37,59 +37,6 @@ static void prf_msg(uint8_t R[SPX_N],
     memcpy(R, hmac_sha256_out, SPX_N);
 }
 
-static void h_msg(uint8_t mhash[SPX_FORS_MSG_BYTES],
-                  uint64_t *tree_idx,
-                  uint32_t *leaf_idx,
-                  const uint8_t R[SPX_N],
-                  const uint8_t pk[SPX_PK_BYTES],
-                  const uint8_t *m, size_t mlen)
-{
-    // H_msg = SHA256(tag=0x02 || R || PK || H(M)) -> 擷取:
-    //  - mhash  = 前 SPX_FORS_MSG_BYTES
-    //  - tree   = 接下來 8 bytes（小端解）
-    //  - leaf   = 再接下來 4 bytes（小端解），按參數集遮罩到合法範圍
-    uint8_t tag = 0x02, hM[32], h[32];
-    sha256(m, mlen, hM);
-
-    // 拼 (tag || R || PK || hM)
-    uint8_t in[1 + SPX_N + SPX_PK_BYTES + 32];
-    size_t off = 0;
-    in[off++] = tag;
-    memcpy(in+off, R, SPX_N); off += SPX_N;
-    memcpy(in+off, pk, SPX_PK_BYTES); off += SPX_PK_BYTES;
-    memcpy(in+off, hM, 32); off += 32;
-
-    sha256(in, off, h);
-
-    // 擴充輸出（需要超過 32 bytes 時）就再 hash 一次：h2 = SHA256(0x03||h)
-    uint8_t h2[32], tag2=0x03, in2[1+32];
-    in2[0]=tag2; memcpy(in2+1, h, 32); sha256(in2, sizeof(in2), h2);
-
-    // 填 mhash：先用 h，再不夠用 h2
-    size_t need = SPX_FORS_MSG_BYTES;
-    size_t cpy1 = need > 32 ? 32 : need;
-    memcpy(mhash, h, cpy1);
-    if(need > 32) memcpy(mhash+32, h2, need-32);
-
-    // 取 tree_idx（8 bytes）與 leaf_idx（4 bytes）
-    // 用 h2 來取索引
-    uint8_t idxbuf[12];
-    memcpy(idxbuf, h2, 12);
-    uint64_t tree = 0;
-    for(int i=0;i<8;i++) tree |= ((uint64_t)idxbuf[i]) << (8*i);
-    uint32_t leaf = 0;
-    for(int i=0;i<4;i++) leaf |= ((uint32_t)idxbuf[8+i]) << (8*i);
-
-    // 遮罩 leaf 到本層葉子範圍 (H/D)
-    const unsigned H = SPX_FULL_HEIGHT;
-    const unsigned D = SPX_D;
-    const unsigned h_per = H / D;
-    leaf &= ((1u << h_per) - 1u);
-
-    *tree_idx = tree;
-    *leaf_idx = leaf;
-}
-
 /* 主簽章：把 R、FORS、各層 WOTS+ 與 auth path 串起來 */
 int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
                  const uint8_t sk[SPX_SK_BYTES],
@@ -111,15 +58,15 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
     memcpy(p, R, SPX_N);
     p += SPX_N;
 
-    uint8_t mhash[SPX_FORS_MSG_BYTES];
-    uint64_t tree_idx; uint32_t leaf_idx;
-    h_msg(mhash, &tree_idx, &leaf_idx, R, pk, m, mlen);
-
     uint8_t node[SPX_N];
     // TODO sk_seed should be passed from parameter of slh_dsa_sign
     // TODO pk_seed should be passed from parameter of slh_dsa_sign
     psa_key_id_t sk_seed;
-    psa_key_id_t pk_seed;
+    psa_key_id_t pk_key_id;
+
+    // 5: 𝑑𝑖𝑔𝑒𝑠𝑡 ← H𝑚𝑠𝑔(𝑅, PK.seed, PK.root, 𝑀 ) ▷ compute message digest
+    uint8_t out[SPX_M];
+    h_msg(out, R, pk_key_id, m, mlen);
 
     // 14: SIG_FORS ← fors_sign(𝑚𝑑, SK.seed, PK.seed, ADRS)
     // 15: SIG ← SIG ∥ SIG_FORS

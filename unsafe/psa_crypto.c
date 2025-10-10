@@ -156,3 +156,36 @@ uint8_t * get_pk_seed()
 {
     return (uint8_t *)pk_seed;
 }
+
+/**
+ * H_𝑚𝑠𝑔(𝑅, PK.seed, PK.root, 𝑀 ) = MGF1-SHA-256(𝑅 ∥ PK.seed ∥ SHA-256(𝑅 ∥ PK.seed ∥ PK.root ∥ 𝑀 ), 𝑚)
+ */
+void h_msg(uint8_t out[SPX_M], // 𝑚 is 30 for SLH-DSA-SHA2-128s
+           const uint8_t R[SPX_N],
+           const psa_key_id_t pk_key_id,
+           const uint8_t *m, size_t mlen)
+{
+    // 𝑅 ∥ PK.seed ∥ PK.root ∥ 𝑀 
+    uint8_t in_sha256[SPX_N * 3 + mlen];
+    uint8_t *p = (uint8_t *)(in_sha256[0]);
+    memcpy(p, R, SPX_N); p += SPX_N;
+    memcpy(p, pk_seed, SPX_N); p += SPX_N;
+    memcpy(p, pk_root, SPX_N); p += SPX_N;
+    memcpy(p, m, mlen);
+
+    // SHA-256(𝑅 ∥ PK.seed ∥ PK.root ∥ 𝑀 )
+    uint8_t hM[32];
+    sha256(in_sha256, sizeof(in_sha256), hM);
+
+    // 𝑚 is 30 for SLH-DSA-SHA2-128s
+    // MGF1-SHA-256(𝑅 ∥ PK.seed ∥ SHA-256(...), 𝑚)
+    uint8_t in[SPX_N + SPX_PK_BYTES + 32];
+    p = (uint8_t *)(in[0]);
+
+    // 𝑅 ∥ PK.seed ∥ SHA-256(...)
+    memcpy(p, R, SPX_N); p += SPX_N;
+    memcpy(p, pk_seed, SPX_N); p += SPX_N;
+    memcpy(p, hM, 32);
+
+    // TODO MGF1-SHA-256(𝑅 ∥ PK.seed ∥ SHA-256(...), 𝑚)
+}
