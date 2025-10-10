@@ -58,7 +58,10 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
     uint8_t out[SPX_M];
     h_msg(out, R, pk_key_id, m, mlen);
 
-    idx_tree
+    // TODO 
+    unsigned int idx_tree = 0;
+    unsigned int idx_leaf = 0;
+
     ADRS adrs;
     //11: ADRS.setTreeAddress(𝑖𝑑𝑥𝑡𝑟𝑒𝑒)
     set_tree_addr(adrs, idx_tree);
