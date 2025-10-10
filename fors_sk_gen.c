@@ -41,7 +41,7 @@ void test_fors_sk_gen()
 {
     int n = 16;
     const psa_key_id_t sk_seed;
-    const psa_key_id_t pk_seed
+    const psa_key_id_t pk_seed;
     const ADRS adrs;
 
     unsigned int type = 4;  // FORS_ROOTS)
