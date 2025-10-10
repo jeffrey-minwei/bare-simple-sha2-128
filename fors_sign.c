@@ -88,8 +88,6 @@ size_t fors_sign(uint8_t out[SPX_FORS_SIG_LENGTH],
 
     base_2b(md, a, k, indices);
 
-    ADRS adrs;
-
     uint8_t *p = out;
 
     // for i from 0 to k − 1 do        ▷ compute signature elements
