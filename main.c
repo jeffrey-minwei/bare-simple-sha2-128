@@ -63,6 +63,21 @@ void test_uart()
     uarte0_tx(msg, sizeof(msg) - 1);
 }
 
+psa_status_t create_sk_prf(psa_key_id_t desired_id, psa_key_id_t *sk_prf_key_id) {
+    psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
+
+    psa_set_key_type(&attr, PSA_KEY_TYPE_HMAC);
+    psa_set_key_bits(&attr, (psa_key_bits_t)(8 * SPX_N));
+    psa_set_key_algorithm(&attr, PSA_ALG_HMAC(PSA_ALG_SHA_256));
+    psa_set_key_lifetime(&attr, PSA_KEY_LIFETIME_PERSISTENT);
+    psa_set_key_usage_flags(&attr, PSA_KEY_USAGE_SIGN_MESSAGE);
+    psa_set_key_id(&attr, desired_id);
+
+    psa_status_t st = psa_generate_key(&attr, sk_prf_key_id);
+    psa_reset_key_attributes(&attr);
+    return st;
+}
+
 void generate_key(psa_key_id_t *p_sk_seed_key_id, 
                   psa_key_id_t *p_sk_prf_key_id, 
                   psa_key_id_t *p_pk_key_id)
@@ -77,8 +92,7 @@ void generate_key(psa_key_id_t *p_sk_seed_key_id,
         for(;;);  // 失敗停在這裡
     }
 
-    psa_set_key_id(&attributes, 2);
-    status = psa_generate_key(&attributes, p_sk_prf_key_id);
+    status = create_sk_prf(2, p_sk_prf_key_id);
     if (status != PSA_SUCCESS) { 
         uarte0_puts("psa_generate_key sk prf fail");
         for(;;);  // 失敗停在這裡
