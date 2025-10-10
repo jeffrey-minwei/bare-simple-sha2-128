@@ -36,17 +36,21 @@ Output: n-byte FORS private-key value.
 5: return PRF(PK.seed, SK.seed, skADRS)
 */
 void fors_sk_gen(uint8_t out[SPX_N],
-                 const psa_key_id_t sk_key_id, 
-                 const psa_key_id_t pk_key_id, 
+                 const psa_key_id_t sk_seed_key_id, 
+                 const psa_key_id_t pk_seed_key_id, 
                  const ADRS adrs, 
                  const unsigned int idx);
 
-size_t fors_sign(uint8_t *sig_ptr, 
-                 uint8_t fors_root[SPX_N],
+size_t fors_sign(uint8_t out[SPX_FORS_SIG_LENGTH], 
                  const uint8_t mhash[SPX_FORS_MSG_BYTES],
-                 const psa_key_id_t sk_seed, 
-                 const psa_key_id_t pk_seed,
-                 uint64_t tree_idx, 
-                 uint32_t leaf_idx);
-
+                 const psa_key_id_t sk_seed_key_id, 
+                 const psa_key_id_t pk_seed_key_id,
+                 const ADRS adrs);
+                 
+void fors_node(uint8_t out[SPX_N],
+               const psa_key_id_t sk_seed_key_id, 
+               unsigned int i, 
+               unsigned int z, 
+               const psa_key_id_t pk_seed_key_id, 
+               ADRS adrs);
 #endif

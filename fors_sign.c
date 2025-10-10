@@ -43,8 +43,6 @@ void fors_sk_gen(uint8_t out[SPX_N],
 
     // PRF(PK.seed, SK.seed, skADRS)
     _prf(out, pk_key_id, sk_key_id, skADRS);
-
-    uarte0_puts("fors_sk_gen DONE\n");
 }
 
 /**
@@ -74,31 +72,25 @@ line 2: base_2b(md, a, k, p_indices), a will be 6, 8, 9, 12 or 14
 */
 
 /**
- * TODO not implemented yet
- * 把 mhash 做一次 sha256 當成 fors_root; 簽章長度回傳 0
+ * fors_sign(md, SK.seed, PK.seed, ADRS)
  */
-size_t fors_sign(uint8_t *sig_ptr, 
-                 uint8_t fors_root[SPX_N],
+size_t fors_sign(uint8_t out[SPX_FORS_SIG_LENGTH], 
                  const uint8_t mhash[SPX_FORS_MSG_BYTES],
-                 const psa_key_id_t sk_key_id, 
-                 const psa_key_id_t pk_key_id,
-                 uint64_t tree_idx, 
-                 uint32_t leaf_idx)
+                 const psa_key_id_t sk_seed_key_id, 
+                 const psa_key_id_t pk_seed_key_id,
+                 const ADRS adrs)
 {
     // a will be 6, 8, 9, 12 or 14
-    int a = 12;
-    int k = 14;
+    int a = SPX_A;
+    int k = SPX_K;
 
     uint8_t indices[k];
-    unsigned char md[21] = {
-        0xa3,0x7c,0x05,0xd1,0x9e,0x42,0xb8,0x6f,0x00,0x13,0xc4,
-        0x2a,0x59,0x87,0xee,0x31,0x74,0x0b,0x9a,0x26,0xf5
-    };
+
     base_2b(md, a, k, indices);
 
     ADRS adrs;
 
-    uint8_t *p = sig_ptr;
+    uint8_t *p = out;
 
     // for i from 0 to k − 1 do        ▷ compute signature elements
     for (unsigned int i = 0; i < k; ++i)
@@ -112,25 +104,85 @@ size_t fors_sign(uint8_t *sig_ptr,
         memcpy(p, i_SIG_fors, SPX_N);
         p += SPX_N;
 
+        uint8_t auth[SPX_A][SPX_N];
         // for j from 0 to a − 1 do     ▷ compute auth path
         for (unsigned int j = 0; j < a; ++j)
         {
-            // TODO not implemented yet
-            // s ← ⌊p_indices[i] / (2^j)⌋ ⊕ 1
-            // AUTH[j] ← fors_node(SK.seed, i * (2 ^ (a−j) ) + s, j, PK.seed, ADRS)
-        }
+            // s ← ⌊indices[i] / (2^j)⌋ ⊕ 1
+            const unsigned int W = (unsigned int)(8u * sizeof(unsigned int));
+            unsigned int q = (j < W) ? (indices[i] >> j) : 0u;
+            unsigned int s = (q ^ 1u);
 
+            // AUTH[j] ← fors_node(SK.seed, i * (2 ^ (a−j) ) + s, j, PK.seed, ADRS)
+            fors_node(auth[j], sk_seed_key_id, i * (2 ^ (a - j) ) + s, j, pk_seed_key_id, ADRS)
+        }
         // SIG_fors = concat(SIG_fors, AUTH)
+        memcpy(p, (uint8_t *)(auth[0][0]), SPX_A * SPX_N);
+        p += SPX_A * SPX_N;
     }
 
-    uint8_t h[32];
-
-    // TODO not implemented yet
-    // 把 mhash 做一次 sha256 當成 fors_root; 簽章長度回傳 0
-    sha256(mhash, SPX_FORS_MSG_BYTES, h);
-    memcpy(fors_root, h, SPX_N);
-
-    // TODO not implemented yet
+    uarte0_puts("fors_sk_gen DONE\n");
     return 0;
 }
+
+/*
+Algorithm 15 fors_node(SK.seed, 𝑖, 𝑧, PK.seed, ADRS)
+Computes the root of a Merkle subtree of FORS public values.
+Input: Secret seed SK.seed, target node index 𝑖, target node height 𝑧, public seed PK.seed, address ADRS.
+Output: 𝑛-byte root 𝑛𝑜𝑑𝑒.
+1: if 𝑧 = 0 then
+2:    𝑠𝑘 ← fors_skGen(SK.seed, PK.seed, ADRS, 𝑖)
+3:    ADRS.setTreeHeight(0)
+4:    ADRS.setTreeIndex(𝑖)
+5:    𝑛𝑜𝑑𝑒 ← F(PK.seed, ADRS, 𝑠𝑘)
+6: else
+7:    𝑙𝑛𝑜𝑑𝑒 ← fors_node(SK.seed, 2𝑖, 𝑧 − 1, PK.seed, ADRS)
+8:    𝑟𝑛𝑜𝑑𝑒 ← fors_node(SK.seed, 2𝑖 + 1, 𝑧 − 1, PK.seed, ADRS)
+9:    ADRS.setTreeHeight(𝑧)
+10:   ADRS.setTreeIndex(𝑖)
+11:   𝑛𝑜𝑑𝑒 ← H(PK.seed, ADRS, 𝑙𝑛𝑜𝑑𝑒 ∥ 𝑟𝑛𝑜𝑑𝑒)
+12: end if
+13: return 𝑛𝑜𝑑𝑒
+*/
+void fors_node(uint8_t out[SPX_N],
+               const psa_key_id_t sk_seed_key_id, 
+               unsigned int i, 
+               unsigned int z, 
+               const psa_key_id_t pk_seed_key_id, 
+               ADRS adrs)
+{
+    if (z == 0)
+    {
+        // 2: 𝑠𝑘 ← fors_skGen(SK.seed, PK.seed, ADRS, 𝑖)
+        uint8_t sk[SPX_N];
+        fors_sk_gen(sk, sk_seed, pk_seed, adrs, i);
+
+        // 3: ADRS.setTreeHeight(0)
+        set_tree_height(adrs, 0);
+
+        // 4: ADRS.setTreeIndex(𝑖)
+        set_tree_index(adrs, i);
+
+        // 5: 𝑛𝑜𝑑𝑒 ← F(PK.seed, ADRS, 𝑠𝑘)
+        F(pk_seed, adrs, sk, out);
+    }
+    else
+    {
+        uint8_t lnode[SPX_N];
+        fors_node(lnode, sk_seed, 2*i, z - 1, pk_seed, adrs);
+
+        uint8_t rnode[SPX_N];
+        fors_node(rnode, sk_seed, 2*i + 1, z - 1, pk_seed, adrs);
+
+        // 9:   ADRS.setTreeHeight(𝑧)
+        set_tree_height(adrs, z);
+        // 10:  ADRS.setTreeIndex(𝑖)
+        set_tree_index(adrs, i);
+
+        uint8_t l_add_r[2*SPX_N];
+        // 11:  𝑛𝑜𝑑𝑒 ← H(PK.seed, ADRS, 𝑙𝑛𝑜𝑑𝑒 ∥ 𝑟𝑛𝑜𝑑𝑒)
+        H(pk_seed, adrs, l_add_r, out);
+    }
+}
+
 

@@ -18,4 +18,16 @@
 #define SPX_XMSS_LEN  44
 #endif
 
+#ifndef SPX_K
+#define SPX_K 14 // k is 14 for SLH-DSA-SHA2-128s
+#endif
+
+#ifndef SPX_A
+#define SPX_A 12 // a is 12 for SLH-DSA-SHA2-128s
+#endif
+
+#ifndef SPX_FORS_SIG_LENGTH
+#define SPX_FORS_SIG_LENGTH (SPX_K * (SPX_A + 1 ) * SPX_N)
+#endif
+
 #endif
