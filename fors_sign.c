@@ -98,7 +98,7 @@ size_t fors_sign(uint8_t *sig_ptr,
 
     ADRS adrs;
 
-    int accumulate_size = 0;
+    uint8_t *p = sig_ptr;
 
     // for i from 0 to k − 1 do        ▷ compute signature elements
     for (unsigned int i = 0; i < k; ++i)
@@ -109,8 +109,8 @@ size_t fors_sign(uint8_t *sig_ptr,
         fors_sk_gen(i_SIG_fors, sk_key_id, pk_key_id, adrs, i * (2^a) + indices[i]);
 
         // SIG_fors = concat(SIG_fors, i_SIG_fors)
-        memcpy(p + accumulate_size, i_SIG_fors, SPX_N);
-        accumulate_size += SPX_N;
+        memcpy(p, i_SIG_fors, SPX_N);
+        p += SPX_N;
 
         // for j from 0 to a − 1 do     ▷ compute auth path
         for (unsigned int j = 0; j < a; ++j)
