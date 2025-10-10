@@ -24,8 +24,8 @@ Output: n-byte FORS private-key value.
 5: return PRF(PK.seed, SK.seed, skADRS)
 */
 void fors_sk_gen(uint8_t out[SPX_N],
-                 const psa_key_id_t sk_seed, 
-                 const psa_key_id_t pk_seed, 
+                 const psa_key_id_t sk_key_id, 
+                 const psa_key_id_t pk_key_id, 
                  const ADRS adrs, 
                  const unsigned int idx)
 {
@@ -43,7 +43,7 @@ void fors_sk_gen(uint8_t out[SPX_N],
     set_tree_index(skADRS, idx);
 
     // PRF(PK.seed, SK.seed, skADRS)
-    _prf(out, pk_seed, sk_seed, skADRS);
+    _prf(out, pk_key_id, sk_key_id, skADRS);
 
     uarte0_puts("fors_sk_gen DONE\n");
 }
@@ -107,7 +107,7 @@ size_t fors_sign(uint8_t *sig_ptr,
         // i_SIG_fors = fors_sk_gen(SK.seed, PK.seed, ADRS, i * (2^a) + indices[i])
         uint8_t i_SIG_fors[SPX_N];
         // Output: n-byte FORS private-key value.
-        fors_sk_gen(i_SIG_fors, sk_seed, pk_seed, adrs, i * (2^a) + indices[i]);
+        fors_sk_gen(i_SIG_fors, sk_key_id, pk_key_id, adrs, i * (2^a) + indices[i]);
 
         // SIG_fors = concat(SIG_fors, i_SIG_fors)
         memcpy(p + accumulate_size, i_SIG_fors, SPX_N);
