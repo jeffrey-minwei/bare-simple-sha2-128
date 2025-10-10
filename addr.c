@@ -128,6 +128,11 @@ void set_chain_addr(ADRS adrs, unsigned long long i)
     }
 }
 
+void set_tree_addr(ADRS adrs, unsigned long long i)
+{
+    // TODO
+}
+
 /**
  * See page 14, Table 1. Member functions for addresses, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
  * ADRS = concat(ADRS[0 ∶ 28], toByte(i, 4))

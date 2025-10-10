@@ -58,11 +58,20 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
     uint8_t out[SPX_M];
     h_msg(out, R, pk_key_id, m, mlen);
 
+    idx_tree
+    ADRS adrs;
+    //11: ADRS.setTreeAddress(𝑖𝑑𝑥𝑡𝑟𝑒𝑒)
+    set_tree_addr(adrs, idx_tree);
+    //12: ADRS.setTypeAndClear(FORS_TREE)
+    set_type_and_clear(adrs, FORS_TREE);
+    //13: ADRS.setKeyPairAddress(𝑖𝑑𝑥𝑙𝑒𝑎𝑓)
+    set_key_pair_addr(adrs, idx_leaf);
+
     uint8_t mhash[SPX_FORS_MSG_BYTES];
     // 14: SIG_FORS ← fors_sign(𝑚𝑑, SK.seed, PK.seed, ADRS)
     // 15: SIG ← SIG ∥ SIG_FORS
     uint8_t sig_fors[SPX_FORS_SIG_LENGTH];
-    size_t used = fors_sign(sig_fors, mhash, sk_key_id, pk_key_id);
+    size_t used = fors_sign(sig_fors, mhash, sk_key_id, pk_key_id, adrs);
     p += used;
 
     // 16: PK_FORS ← fors_pkFromSig(SIG_FORS, 𝑚𝑑, PK.seed, ADRS) ▷ get FORS key
