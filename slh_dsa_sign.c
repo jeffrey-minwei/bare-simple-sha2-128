@@ -90,20 +90,6 @@ static void h_msg(uint8_t mhash[SPX_FORS_MSG_BYTES],
     *leaf_idx = leaf;
 }
 
-// fake WOTS+：對 node 做 sha256 當作 next_root；簽章/auth 一律長度 0
-size_t wots_sign_and_auth(uint8_t *sig_ptr, uint8_t next_root[SPX_N],
-                          const uint8_t msgpk[SPX_N],
-                          const psa_key_id_t sk_seed, 
-                          const psa_key_id_t pk_seed,
-                          uint64_t tree_idx, uint32_t leaf_idx, unsigned subtree_height)
-{
-    uint8_t h[32];
-    sha256(msgpk, SPX_N, h);
-    memcpy(next_root, h, SPX_N);
-    (void)sig_ptr; (void)sk_seed; (void)pub_seed; (void)tree_idx; (void)leaf_idx; (void)subtree_height;
-    return 0;
-}
-
 /* 主簽章：把 R、FORS、各層 WOTS+ 與 auth path 串起來 */
 int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
                  const uint8_t sk[SPX_SK_BYTES],
@@ -117,45 +103,33 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
 
     uint8_t *p = sig_out;
 
-    // 1) R
     uint8_t R[SPX_N];
-
+    // 𝑅 ← PRF_𝑚𝑠𝑔(SK.prf, 𝑜𝑝𝑡_𝑟𝑎𝑛𝑑, 𝑀 )
     // TODO sk_prf_key_id should be passed from parameter of slh_dsa_sign
     psa_key_id_t sk_prf_key_id;
     prf_msg(R, sk_prf_key_id, optrand, m, mlen);
-    memcpy(p, R, SPX_N); p += SPX_N;
+    memcpy(p, R, SPX_N);
+    p += SPX_N;
 
-    // 2) H_msg
     uint8_t mhash[SPX_FORS_MSG_BYTES];
     uint64_t tree_idx; uint32_t leaf_idx;
     h_msg(mhash, &tree_idx, &leaf_idx, R, pk, m, mlen);
 
-    // 3) FORS.sign -> fors_root
     uint8_t node[SPX_N];
     // TODO sk_seed should be passed from parameter of slh_dsa_sign
     // TODO pk_seed should be passed from parameter of slh_dsa_sign
     psa_key_id_t sk_seed;
     psa_key_id_t pk_seed;
+
+    // 14: SIG_FORS ← fors_sign(𝑚𝑑, SK.seed, PK.seed, ADRS)
+    // 15: SIG ← SIG ∥ SIG_FORS
     size_t used = fors_sign(p, node, mhash, sk_seed, pk_seed, tree_idx, leaf_idx);
     p += used;
 
-    // 4) D 層循環：每層 WOTS+.sign(node) + auth_path，計算到上一層 root
-    const unsigned H  = SPX_FULL_HEIGHT;
-    const unsigned D  = SPX_D;
-    const unsigned h  = H / D;
+    // 16: PK_FORS ← fors_pkFromSig(SIG_FORS, 𝑚𝑑, PK.seed, ADRS) ▷ get FORS key
+    // 17: SIG_HT ← ht_sign(PK_FORS, SK.seed, PK.seed, 𝑖𝑑𝑥𝑡𝑟𝑒𝑒, 𝑖𝑑𝑥𝑙𝑒𝑎𝑓)
+    // 18: SIG ← SIG ∥ SIG_HT
 
-    for(unsigned layer=0; layer<D; ++layer){
-        uint32_t leaf = (uint32_t)(leaf_idx & ((1u<<h)-1u));
-        uint64_t tree = tree_idx;
-
-        used = wots_sign_and_auth(p, node, node, sk_seed, pk_seed, tree, leaf, h);
-        p += used;
-
-        leaf_idx >>= h;
-        tree_idx >>= h;
-    }
-
-    // 你可以在這裡（debug）檢查 p-sig_out 是否等於 SPX_BYTES
     return 0;
 
 }
