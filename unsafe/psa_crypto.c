@@ -187,5 +187,6 @@ void h_msg(uint8_t out[SPX_M], // 𝑚 is 30 for SLH-DSA-SHA2-128s
     memcpy(p, pk_seed, SPX_N); p += SPX_N;
     memcpy(p, hM, 32);
 
-    // TODO MGF1-SHA-256(𝑅 ∥ PK.seed ∥ SHA-256(...), 𝑚)
+    // MGF1-SHA-256(𝑅 ∥ PK.seed ∥ SHA-256(...), 𝑚)
+    mgf1_sha256_len30(out, in, sizeof(in), SPX_M);
 }

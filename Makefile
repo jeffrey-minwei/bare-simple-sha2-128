@@ -22,7 +22,8 @@ OBJS := addr_compressed.o thf.o common.o addr.o \
         base_2b.o keygen.o sha256.o \
         slh_dsa_sign.o fors_sign.o fors_sk_gen.o
 
-OBJS += xmss_sign.o wots_plus.o psa_crypto.o hmac_sha256.o
+OBJS += xmss_sign.o wots_plus.o \
+        mgf1_sha256_len30.o psa_crypto.o hmac_sha256.o
 
 CC := arm-none-eabi-gcc
 
@@ -75,6 +76,7 @@ endif
 SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c \
         main.c \
         keygen.c $(SHA256) unsafe/hmac_sha256.c \
+        unsafe/mgf1_sha256_len30.c \
         uart_min.c slh_dsa_sign.c \
         base_2b.c addr_compressed.c addr.c \
         xmss_sign.c wots_plus.c \
@@ -86,6 +88,9 @@ WORKDIR     ?= $(shell pwd)
 RESC        ?= run_sign.resc
 
 RNG_OBJS := $(RNG_SRC:.c=.o)
+
+mgf1_sha256_len30.o: unsafe/mgf1_sha256_len30.c
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 hmac_sha256.o: unsafe/hmac_sha256.c
 	$(CC) $(CFLAGS) -c $^ -o $@

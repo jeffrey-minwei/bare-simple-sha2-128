@@ -64,5 +64,8 @@ void h_msg(uint8_t out[SPX_M], // 𝑚 is 30 for SLH-DSA-SHA2-128s
            const psa_key_id_t pk,
            const uint8_t *m, size_t mlen);
 
-#endif
+int mgf1_sha256_len30(uint8_t out[SPX_M],
+                      const uint8_t *mask, const size_t mask_len,
+                      uint8_t m);
 
+#endif
