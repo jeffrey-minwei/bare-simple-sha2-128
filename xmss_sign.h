@@ -15,17 +15,17 @@
  * \param adrs    [out] 
  */
 void xmss_node(uint8_t out_root[SPX_N],
-               const unsigned char sk_seed[SPX_N], 
+               const psa_key_id_t sk_seed, 
                unsigned int i,
                unsigned int z,
-               const unsigned char pk_seed[SPX_N], 
+               const psa_key_id_t pk_seed, 
                ADRS adrs);
 
 void xmss_sign(N_BYTES out[SPX_XMSS_LEN],
                const uint8_t M[SPX_N], 
-               const unsigned char sk_seed[SPX_N], 
+               const psa_key_id_t sk_seed, 
                uint8_t idx,
-               const unsigned char pk_seed[SPX_N], 
+               const psa_key_id_t pk_seed, 
                ADRS adrs);
 
 #endif

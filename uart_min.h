@@ -44,8 +44,11 @@
 
 void uarte0_init(void);
 
+void uarte0_hex_byte(uint8_t b);
+
 void uarte0_tx(const void *buf, uint32_t len);
 void uarte0_puts(const char *s);
 void uarte0_hex(const char *label, const uint8_t *data, size_t len);
+void uarte0_hex_all(const char *label, const uint8_t *buf, size_t len);
 
 #endif 

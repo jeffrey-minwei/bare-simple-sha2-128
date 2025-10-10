@@ -12,7 +12,7 @@
 // SPX_N, SPX_SK_BYTES, SPX_PK_BYTES, SPX_BYTES, SPX_FULL_HEIGHT, SPX_D, SPX_FORS_MSG_BYTES
 
 static void prf_msg(uint8_t R[SPX_N],
-                    psa_key_id_t key_id,
+                    psa_key_id_t sk_prf_key_id,
                     const uint8_t optrand[SPX_N],
                     const uint8_t *m, 
                     size_t mlen)
@@ -24,7 +24,7 @@ static void prf_msg(uint8_t R[SPX_N],
     uint8_t hmac_sha256_out[32];
     size_t mac_len = 0;
     //hmac_sha256(hmac_sha256_out, sk_prf, SPX_N, opt_rand_M, sizeof(opt_rand_M));
-    psa_status_t status = psa_mac_compute(key_id, 
+    psa_status_t status = psa_mac_compute(sk_prf_key_id, 
                                           PSA_ALG_HMAC(PSA_ALG_SHA_256), 
                                           opt_rand_M, sizeof(opt_rand_M) - 1, 
                                           hmac_sha256_out, sizeof(hmac_sha256_out),
@@ -37,127 +37,50 @@ static void prf_msg(uint8_t R[SPX_N],
     memcpy(R, hmac_sha256_out, SPX_N);
 }
 
-static void h_msg(uint8_t mhash[SPX_FORS_MSG_BYTES],
-                  uint64_t *tree_idx,
-                  uint32_t *leaf_idx,
-                  const uint8_t R[SPX_N],
-                  const uint8_t pk[SPX_PK_BYTES],
-                  const uint8_t *m, size_t mlen)
-{
-    // H_msg = SHA256(tag=0x02 || R || PK || H(M)) -> 擷取:
-    //  - mhash  = 前 SPX_FORS_MSG_BYTES
-    //  - tree   = 接下來 8 bytes（小端解）
-    //  - leaf   = 再接下來 4 bytes（小端解），按參數集遮罩到合法範圍
-    uint8_t tag = 0x02, hM[32], h[32];
-    sha256(m, mlen, hM);
-
-    // 拼 (tag || R || PK || hM)
-    uint8_t in[1 + SPX_N + SPX_PK_BYTES + 32];
-    size_t off = 0;
-    in[off++] = tag;
-    memcpy(in+off, R, SPX_N); off += SPX_N;
-    memcpy(in+off, pk, SPX_PK_BYTES); off += SPX_PK_BYTES;
-    memcpy(in+off, hM, 32); off += 32;
-
-    sha256(in, off, h);
-
-    // 擴充輸出（需要超過 32 bytes 時）就再 hash 一次：h2 = SHA256(0x03||h)
-    uint8_t h2[32], tag2=0x03, in2[1+32];
-    in2[0]=tag2; memcpy(in2+1, h, 32); sha256(in2, sizeof(in2), h2);
-
-    // 填 mhash：先用 h，再不夠用 h2
-    size_t need = SPX_FORS_MSG_BYTES;
-    size_t cpy1 = need > 32 ? 32 : need;
-    memcpy(mhash, h, cpy1);
-    if(need > 32) memcpy(mhash+32, h2, need-32);
-
-    // 取 tree_idx（8 bytes）與 leaf_idx（4 bytes）
-    // 用 h2 來取索引
-    uint8_t idxbuf[12];
-    memcpy(idxbuf, h2, 12);
-    uint64_t tree = 0;
-    for(int i=0;i<8;i++) tree |= ((uint64_t)idxbuf[i]) << (8*i);
-    uint32_t leaf = 0;
-    for(int i=0;i<4;i++) leaf |= ((uint32_t)idxbuf[8+i]) << (8*i);
-
-    // 遮罩 leaf 到本層葉子範圍 (H/D)
-    const unsigned H = SPX_FULL_HEIGHT;
-    const unsigned D = SPX_D;
-    const unsigned h_per = H / D;
-    leaf &= ((1u << h_per) - 1u);
-
-    *tree_idx = tree;
-    *leaf_idx = leaf;
-}
-
-size_t wots_sign_and_auth(uint8_t *sig_ptr,
-                          uint8_t next_root[SPX_N],
-                          const uint8_t msgpk[SPX_N],
-                          const uint8_t sk_seed[SPX_N],
-                          const uint8_t pub_seed[SPX_N],
-                          uint64_t tree_idx,
-                          uint32_t leaf_idx,
-                          unsigned subtree_height);
-
-// fake WOTS+：對 node 做 sha256 當作 next_root；簽章/auth 一律長度 0
-size_t wots_sign_and_auth(uint8_t *sig_ptr, uint8_t next_root[SPX_N],
-                          const uint8_t msgpk[SPX_N],
-                          const uint8_t *sk_seed, const uint8_t *pub_seed,
-                          uint64_t tree_idx, uint32_t leaf_idx, unsigned subtree_height)
-{
-    uint8_t h[32];
-    sha256(msgpk, SPX_N, h);
-    memcpy(next_root, h, SPX_N);
-    (void)sig_ptr; (void)sk_seed; (void)pub_seed; (void)tree_idx; (void)leaf_idx; (void)subtree_height;
-    return 0;
-}
-
-/* 主簽章：把 R、FORS、各層 WOTS+ 與 auth path 串起來 */
 int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
-                 const uint8_t sk[SPX_SK_BYTES],
-                 const uint8_t pk[SPX_PK_BYTES],
+                 const psa_key_id_t sk_key_id,
+                 const psa_key_id_t sk_prf_key_id,
+                 const psa_key_id_t pk_key_id,
                  const uint8_t *m, size_t mlen,
                  const uint8_t optrand[SPX_N])
 {
-    const uint8_t *SK_SEED  = sk + 0*SPX_N;
-    const uint8_t *SK_PRF   = sk + 1*SPX_N;
-    const uint8_t *PUB_SEED = sk + 2*SPX_N;
-
     uint8_t *p = sig_out;
 
-    // 1) R
     uint8_t R[SPX_N];
-    psa_key_id_t key_id;
-    prf_msg(R, key_id, optrand, m, mlen);
-    memcpy(p, R, SPX_N); p += SPX_N;
+    // 𝑅 ← PRF_𝑚𝑠𝑔(SK.prf, 𝑜𝑝𝑡_𝑟𝑎𝑛𝑑, 𝑀 )
+    prf_msg(R, sk_prf_key_id, optrand, m, mlen);
+    memcpy(p, R, SPX_N);
+    p += SPX_N;
 
-    // 2) H_msg
-    uint8_t mhash[SPX_FORS_MSG_BYTES];
-    uint64_t tree_idx; uint32_t leaf_idx;
-    h_msg(mhash, &tree_idx, &leaf_idx, R, pk, m, mlen);
-
-    // 3) FORS.sign -> fors_root
     uint8_t node[SPX_N];
-    size_t used = fors_sign(p, node, mhash, SK_SEED, PUB_SEED, tree_idx, leaf_idx);
+
+    // 5: 𝑑𝑖𝑔𝑒𝑠𝑡 ← H𝑚𝑠𝑔(𝑅, PK.seed, PK.root, 𝑀 ) ▷ compute message digest
+    uint8_t out[SPX_M];
+    h_msg(out, R, pk_key_id, m, mlen);
+
+    // TODO 
+    unsigned int idx_tree = 0;
+    unsigned int idx_leaf = 0;
+
+    ADRS adrs;
+    //11: ADRS.setTreeAddress(𝑖𝑑𝑥𝑡𝑟𝑒𝑒)
+    set_tree_addr(adrs, idx_tree);
+    //12: ADRS.setTypeAndClear(FORS_TREE)
+    set_type_and_clear(adrs, FORS_TREE);
+    //13: ADRS.setKeyPairAddress(𝑖𝑑𝑥𝑙𝑒𝑎𝑓)
+    set_key_pair_addr(adrs, idx_leaf);
+
+    uint8_t mhash[SPX_FORS_MSG_BYTES];
+    // 14: SIG_FORS ← fors_sign(𝑚𝑑, SK.seed, PK.seed, ADRS)
+    // 15: SIG ← SIG ∥ SIG_FORS
+    uint8_t sig_fors[SPX_FORS_SIG_LENGTH];
+    size_t used = fors_sign(sig_fors, mhash, sk_key_id, pk_key_id, adrs);
     p += used;
 
-    // 4) D 層循環：每層 WOTS+.sign(node) + auth_path，計算到上一層 root
-    const unsigned H  = SPX_FULL_HEIGHT;
-    const unsigned D  = SPX_D;
-    const unsigned h  = H / D;
+    // 16: PK_FORS ← fors_pkFromSig(SIG_FORS, 𝑚𝑑, PK.seed, ADRS) ▷ get FORS key
+    // 17: SIG_HT ← ht_sign(PK_FORS, SK.seed, PK.seed, 𝑖𝑑𝑥𝑡𝑟𝑒𝑒, 𝑖𝑑𝑥𝑙𝑒𝑎𝑓)
+    // 18: SIG ← SIG ∥ SIG_HT
 
-    for(unsigned layer=0; layer<D; ++layer){
-        uint32_t leaf = (uint32_t)(leaf_idx & ((1u<<h)-1u));
-        uint64_t tree = tree_idx;
-
-        used = wots_sign_and_auth(p, node, node, SK_SEED, PUB_SEED, tree, leaf, h);
-        p += used;
-
-        leaf_idx >>= h;
-        tree_idx >>= h;
-    }
-
-    // 你可以在這裡（debug）檢查 p-sig_out 是否等於 SPX_BYTES
     return 0;
 
 }

@@ -19,18 +19,18 @@ endif
 endif
 
 OBJS := addr_compressed.o thf.o common.o addr.o \
-        chain.o base_2b.o keygen.o sha256.o \
-        slh_dsa_sign.o fors_sign.o fors_sk_gen.o
+        base_2b.o keygen.o sha256.o \
+        slh_dsa_sign.o fors_sign.o 
 
-OBJS += xmss_sign.o wots_plus.o psa_crypto.o hmac_sha256.o
+OBJS += xmss_sign.o wots_plus.o \
+        mgf1_sha256_len30.o psa_crypto.o hmac_sha256.o
 
 CC := arm-none-eabi-gcc
 
 ifeq ($(TARGET),nrf52840)
   PLATFORM := platforms/nrf52840
   CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 \
-            -ffreestanding -Wall -Wextra \
-            -DCRYPTO_BACKEND_CC310_BL -Wl,--gc-sections 
+            -ffreestanding -Wall -Wextra 
             #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include 
   LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf52840.map \
              -specs=nano.specs -nostartfiles
@@ -42,7 +42,7 @@ ifeq ($(TARGET),nrf52840)
 else ifeq ($(TARGET),nrf5340dk)
   PLATFORM := platforms/nrf5340dk
   CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
-            -ffreestanding -Wall -Wextra -Wl,--gc-sections 
+            -ffreestanding -Wall -Wextra 
   LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf5340dk.map \
              -specs=nano.specs -nostartfiles
   ARCH_DIR   := cortex-m33+nodsp
@@ -76,10 +76,11 @@ endif
 SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c \
         main.c \
         keygen.c $(SHA256) unsafe/hmac_sha256.c \
+        unsafe/mgf1_sha256_len30.c \
         uart_min.c slh_dsa_sign.c \
         base_2b.c addr_compressed.c addr.c \
         xmss_sign.c wots_plus.c \
-        common.c fors_sk_gen.c thf.c fors_sign.c chain.c
+        common.c thf.c fors_sign.c
 
 RENODE_IMG = renode_pinned:cached
 
@@ -87,6 +88,9 @@ WORKDIR     ?= $(shell pwd)
 RESC        ?= run_sign.resc
 
 RNG_OBJS := $(RNG_SRC:.c=.o)
+
+mgf1_sha256_len30.o: unsafe/mgf1_sha256_len30.c
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 hmac_sha256.o: unsafe/hmac_sha256.c
 	$(CC) $(CFLAGS) -c $^ -o $@

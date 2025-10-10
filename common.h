@@ -54,5 +54,18 @@ void prf(const uint8_t pk_seed[SPX_N], const uint8_t sk_seed[SPX_N], const ADRS 
  */
 void _prf(uint8_t out[SPX_N], const psa_key_id_t pk_seed_key_id, const psa_key_id_t sk_seed_key_id, const ADRS adrs);
 
-#endif
+uint8_t * get_pk_seed();
 
+/**
+ * H_𝑚𝑠𝑔(𝑅, PK.seed, PK.root, 𝑀 ) = MGF1-SHA-256(𝑅 ∥ PK.seed ∥ SHA-256(𝑅 ∥ PK.seed ∥ PK.root ∥ 𝑀 ), 𝑚)
+ */
+void h_msg(uint8_t out[SPX_M], // 𝑚 is 30 for SLH-DSA-SHA2-128s
+           const uint8_t R[SPX_N],
+           const psa_key_id_t pk,
+           const uint8_t *m, size_t mlen);
+
+int mgf1_sha256_len30(uint8_t out[SPX_M],
+                      const uint8_t *mask, const size_t mask_len,
+                      uint8_t m);
+
+#endif
