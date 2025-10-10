@@ -61,7 +61,7 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
     uint8_t node[SPX_N];
     // TODO sk_seed should be passed from parameter of slh_dsa_sign
     // TODO pk_seed should be passed from parameter of slh_dsa_sign
-    psa_key_id_t sk_seed;
+    psa_key_id_t sk_key_id;
     psa_key_id_t pk_key_id;
 
     // 5: 𝑑𝑖𝑔𝑒𝑠𝑡 ← H𝑚𝑠𝑔(𝑅, PK.seed, PK.root, 𝑀 ) ▷ compute message digest
@@ -73,7 +73,7 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
     uint32_t leaf_idx;
     // 14: SIG_FORS ← fors_sign(𝑚𝑑, SK.seed, PK.seed, ADRS)
     // 15: SIG ← SIG ∥ SIG_FORS
-    size_t used = fors_sign(p, node, mhash, sk_seed, pk_seed, tree_idx, leaf_idx);
+    size_t used = fors_sign(p, node, mhash, sk_key_id, pk_key_id, tree_idx, leaf_idx);
     p += used;
 
     // 16: PK_FORS ← fors_pkFromSig(SIG_FORS, 𝑚𝑑, PK.seed, ADRS) ▷ get FORS key
