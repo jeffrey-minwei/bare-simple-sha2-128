@@ -63,6 +63,37 @@ void test_uart()
     uarte0_tx(msg, sizeof(msg) - 1);
 }
 
+void generate_key(psa_key_id_t *p_sk_seed_key_id, 
+                  psa_key_id_t *p_sk_prf_key_id, 
+                  psa_key_id_t *p_pk_key_id)
+{
+    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+    psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_PERSISTENT);
+
+    psa_set_key_id(&attributes, 1);
+    psa_status_t status = psa_generate_key(&attributes, p_sk_seed_key_id);
+    if (status != PSA_SUCCESS) { 
+        uarte0_puts("psa_generate_key sk seed fail");
+        for(;;);  // 失敗停在這裡
+    }
+
+    psa_set_key_id(&attributes, 2);
+    status = psa_generate_key(&attributes, p_sk_prf_key_id);
+    if (status != PSA_SUCCESS) { 
+        uarte0_puts("psa_generate_key sk prf fail");
+        for(;;);  // 失敗停在這裡
+    }
+
+    psa_set_key_id(&attributes, 3);
+    status = psa_generate_key(&attributes, p_pk_key_id);
+    if (status != PSA_SUCCESS) { 
+        uarte0_puts("psa_generate_key public key fail");
+        for(;;);  // 失敗停在這裡
+    }
+
+    uarte0_puts("psa_generate_key sk_seed, sk_prf, pk_seed generate successfully");
+}
+
 int main(void)
 {
     SystemInit();
@@ -77,30 +108,10 @@ int main(void)
         for(;;);  // 失敗停在這裡
     }
 
-    psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
-    psa_set_key_id(&attributes, 1);
-    psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_PERSISTENT);
-
     psa_key_id_t sk_key_id;
-    status = psa_generate_key(&attributes, &sk_key_id);
-    if (status != PSA_SUCCESS) { 
-        uarte0_puts("psa_generate_key private key fail");
-        for(;;);  // 失敗停在這裡
-    }
-
     psa_key_id_t sk_prf_key_id;
-    status = psa_generate_key(&attributes, &sk_prf_key_id);
-    if (status != PSA_SUCCESS) { 
-        uarte0_puts("psa_generate_key sk prf fail");
-        for(;;);  // 失敗停在這裡
-    }
-
     psa_key_id_t pk_key_id;
-    status = psa_generate_key(&attributes, &pk_key_id);
-    if (status != PSA_SUCCESS) { 
-        uarte0_puts("psa_generate_key public key fail");
-        for(;;);  // 失敗停在這裡
-    }
+    generate_key(&sk_key_id, &sk_prf_key_id, &pk_key_id);
 
     test_psa_hash_compute();
     test_psa_mac_compute(pk_key_id);
