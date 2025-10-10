@@ -10,51 +10,9 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdio.h>
-    
-/* 非 const，確保放在 RAM（EasyDMA 來源/目的需在 RAM） */
-static uint8_t msg[] = "Test UART\r\n";
 
 /* 避免連結器找不到 SystemInit */
 __attribute__((weak)) void SystemInit(void) {}
-
-static void uarte0_hex_byte(uint8_t b) {
-    char hex[2];
-    const char *digits = "0123456789ABCDEF";
-    hex[0] = digits[b >> 4];
-    hex[1] = digits[b & 0x0F];
-    uarte0_tx(hex, 2);
-}
-
-void uarte0_hex_all(const char *label, const uint8_t *buf, size_t len) {
-    uarte0_puts(label);
-    uarte0_puts(" (");
-    // 印出長度
-    char num[16];
-    int n = 0;
-    size_t tmp = len;
-    if (tmp == 0) {
-        num[n++] = '0';
-    } else {
-        char rev[16];
-        int r = 0;
-        while (tmp > 0 && r < 16) {
-            rev[r++] = '0' + (tmp % 10);
-            tmp /= 10;
-        }
-        while (r > 0) num[n++] = rev[--r];
-    }
-    uarte0_tx(num, n);
-    uarte0_puts(" bytes):\n");
-
-    // 印簽章本體
-    for (size_t i = 0; i < len; i++) {
-        uarte0_hex_byte(buf[i]);
-        if ((i & 0x0F) == 0x0F || i == len - 1)
-            uarte0_puts("\n");
-        else
-            uarte0_puts(" ");
-    }
-}
 
 void test_psa_hash_compute()
 {
@@ -98,13 +56,20 @@ void test_psa_mac_compute(psa_key_id_t key_id)
     }
 }
 
+void test_uart()
+{
+    // test uart
+    uint8_t msg[] = "Test UART\r\n";
+    uarte0_tx(msg, sizeof(msg) - 1);
+}
+
 int main(void)
 {
     SystemInit();
 
     uarte0_init();
-    // test uart
-    uarte0_tx(msg, sizeof(msg) - 1);
+
+    test_uart();
 
     psa_status_t status = psa_crypto_init();
     if (status != PSA_SUCCESS) { 
