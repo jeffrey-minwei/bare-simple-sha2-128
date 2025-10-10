@@ -112,7 +112,7 @@ size_t fors_sign(uint8_t out[SPX_FORS_SIG_LENGTH],
             unsigned int s = (q ^ 1u);
 
             // AUTH[j] ← fors_node(SK.seed, i * (2 ^ (a−j) ) + s, j, PK.seed, ADRS)
-            fors_node(auth[j], sk_seed_key_id, i * (2 ^ (a - j) ) + s, j, pk_seed_key_id, adrs)
+            fors_node(auth[j], sk_seed_key_id, i * (2 ^ (a - j) ) + s, j, pk_seed_key_id, adrs);
         }
         // SIG_fors = concat(SIG_fors, AUTH)
         memcpy(p, (uint8_t *)(auth[0][0]), SPX_A * SPX_N);
