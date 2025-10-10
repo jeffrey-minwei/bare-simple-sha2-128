@@ -98,7 +98,7 @@ size_t fors_sign(uint8_t out[SPX_FORS_SIG_LENGTH],
         // i_SIG_fors = fors_sk_gen(SK.seed, PK.seed, ADRS, i * (2^a) + indices[i])
         uint8_t i_SIG_fors[SPX_N];
         // Output: n-byte FORS private-key value.
-        fors_sk_gen(i_SIG_fors, sk_key_id, pk_key_id, adrs, i * (2^a) + indices[i]);
+        fors_sk_gen(i_SIG_fors, sk_seed_key_id, pk_seed_key_id, adrs, i * (2^a) + indices[i]);
 
         // SIG_fors = concat(SIG_fors, i_SIG_fors)
         memcpy(p, i_SIG_fors, SPX_N);
