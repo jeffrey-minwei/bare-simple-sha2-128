@@ -82,6 +82,7 @@ void generate_key(psa_key_id_t *p_sk_seed_key_id,
 {
     psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
     psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_PERSISTENT);
+    psa_set_key_bits(&attributes, (psa_key_bits_t)(8 * SPX_N));
 
     psa_set_key_id(&attributes, 1);
     psa_status_t status = psa_generate_key(&attributes, p_sk_seed_key_id);
