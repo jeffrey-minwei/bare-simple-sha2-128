@@ -5,6 +5,12 @@
 
 #include <stdint.h>
 
+void fors_sk_gen(uint8_t out[SPX_N],
+                 const psa_key_id_t sk_seed, 
+                 const psa_key_id_t pk_seed, 
+                 const ADRS adrs, 
+                 const unsigned int idx);
+
 void fors_sk_gen(const psa_key_id_t sk_seed, 
                  const psa_key_id_t pk_seed, 
                  const ADRS adrs, 
