@@ -59,11 +59,10 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
     h_msg(out, R, pk_key_id, m, mlen);
 
     uint8_t mhash[SPX_FORS_MSG_BYTES];
-    uint64_t tree_idx;
-    uint32_t leaf_idx;
     // 14: SIG_FORS ← fors_sign(𝑚𝑑, SK.seed, PK.seed, ADRS)
     // 15: SIG ← SIG ∥ SIG_FORS
-    size_t used = fors_sign(p, node, mhash, sk_key_id, pk_key_id, tree_idx, leaf_idx);
+    uint8_t sig_fors[SPX_FORS_SIG_LENGTH];
+    size_t used = fors_sign(sig_fors, mhash, sk_key_id, pk_key_id);
     p += used;
 
     // 16: PK_FORS ← fors_pkFromSig(SIG_FORS, 𝑚𝑑, PK.seed, ADRS) ▷ get FORS key
