@@ -75,7 +75,7 @@ line 2: base_2b(md, a, k, p_indices), a will be 6, 8, 9, 12 or 14
  * fors_sign(md, SK.seed, PK.seed, ADRS)
  */
 size_t fors_sign(uint8_t out[SPX_FORS_SIG_LENGTH], 
-                 const uint8_t mhash[SPX_FORS_MSG_BYTES],
+                 const uint8_t md[SPX_FORS_MSG_BYTES],
                  const psa_key_id_t sk_seed_key_id, 
                  const psa_key_id_t pk_seed_key_id,
                  const ADRS adrs)
