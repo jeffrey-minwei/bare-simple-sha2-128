@@ -203,10 +203,12 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
     // sk: SK.seed || SK.prf || pk.seed || pk.root
     memcpy(sk, rand, sizeof(rand));
 
-    return 0;
+    uint8_t *p = rand;
+    // this line might be segmentation fault (core dumped)
     // 第 3 個 n bytes 是 pk.seed
-    memcpy(pk, ((uint8_t *)rand[0]) + (2 * SPX_N), SPX_N);
-    
+    memcpy(pk, p + (2 * SPX_N), SPX_N);
+
+    return 0;
     // 計算 pk.root
     ADRS adrs;
     memset(adrs, 0, 32);
