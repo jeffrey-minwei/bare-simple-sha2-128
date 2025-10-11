@@ -91,17 +91,18 @@ main()
             break;
         }
         fprintf(fp_rsp, "count = %d\n", count);
-        printf("count = %d\n", count);
-        return 0;
+        printf("count = %d\n", count);       
         
         if ( !ReadHex(fp_req, seed, 48, "seed = ") ) {
             printf("ERROR: unable to read 'seed' from <%s>\n", fn_req);
             return KAT_DATA_ERROR;
         }
         fprintBstr(fp_rsp, "seed = ", seed, 48);
-        
+
         randombytes_init(seed, NULL, 256);
-        
+        printf("randombytes_init done");
+
+        return 0;
         if ( FindMarker(fp_req, "mlen = ") )
             fscanf(fp_req, "%llu", &mlen);
         else {
