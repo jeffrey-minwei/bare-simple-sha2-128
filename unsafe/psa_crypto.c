@@ -204,15 +204,15 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
     memcpy(sk, rand, sizeof(rand));
 
     uint8_t *p = rand;
-    // this line might be segmentation fault (core dumped)
     // 第 3 個 n bytes 是 pk.seed
     memcpy(pk, p + (2 * SPX_N), SPX_N);
 
-    return 0;
     // 計算 pk.root
     ADRS adrs;
     memset(adrs, 0, 32);
 
+    return 0;
+    // this line might be segmentation fault (core dumped)
     int d = 7;  // SLH-DSA-SHA2-128s, d is 7
     set_layer_addr(adrs, d-1);
 
