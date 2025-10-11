@@ -4,8 +4,8 @@
 # ===== nRF nrfxlib (CC31x) autodetect: headers + libs =====
 NRFXLIB_DIR ?= $(abspath third_party/nrfxlib)
 
-# clean help ci-run 以外一律要指定 TARGET
-ifeq (,$(filter clean help ci-run%,$(MAKECMDGOALS)))
+# kat clean help ci-run 以外一律要指定 TARGET
+ifeq (,$(filter kat clean help ci-run%,$(MAKECMDGOALS)))
 
 ifeq ($(strip $(TARGET)),)
 $(error TARGET is required, ex. make TARGET=nrf52840)
