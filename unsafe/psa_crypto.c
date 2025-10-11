@@ -204,7 +204,7 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
     memcpy(sk, rand, sizeof(rand));
 
     // 第 3 個 n bytes 是 pk.seed
-    memcpy(pk, rand + 2 * SPX_N, SPX_N);
+    memcpy(pk, ((uint8_t *)rand[0]) + (2 * SPX_N), SPX_N);
     
     // 計算 pk.root
     ADRS adrs;
