@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := all
-.PHONY: all
+.PHONY: all kat
 
 # ===== nRF nrfxlib (CC31x) autodetect: headers + libs =====
 NRFXLIB_DIR ?= $(abspath third_party/nrfxlib)
@@ -74,7 +74,6 @@ CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
 endif
 
 SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c \
-        main.c \
         keygen.c $(SHA256) unsafe/hmac_sha256.c \
         unsafe/mgf1_sha256_len30.c \
         uart_min.c slh_dsa_sign.c \
@@ -116,7 +115,7 @@ all: sign.elf
 
 sign.elf:  $(PLATFORM)/linker.ld $(OBJS) $(RNG_OBJS)
 	@echo "==> start building with $(CC), output should be $(ELF)"
-	$(CC) $(CFLAGS) $(SRCS) -v $(LDFLAGS) -o $(ELF)
+	$(CC) $(CFLAGS) main.c $(SRCS) -v $(LDFLAGS) -o $(ELF)
 	$(NM) $(ELF) | grep -E 'memcpy|__aeabi_memcpy'
 
 clean:
@@ -140,3 +139,30 @@ ci-run-nrf5340dk: $(ELF) $(RESC)
 	$(RENODE) --console --disable-xwt \
 		-e "set ansi false; include @$(RESC); sleep 2; q" \
 		| $(strip_ansi)
+
+
+# 主機編譯器與 OpenSSL
+HOSTCC      ?= gcc
+OPENSSL_CFLAGS := $(shell pkg-config --cflags openssl 2>/dev/null)
+OPENSSL_LIBS   := $(shell pkg-config --libs   openssl 2>/dev/null)
+ifeq ($(strip $(OPENSSL_LIBS)),)
+  OPENSSL_LIBS := -lcrypto
+endif
+
+HOSTCFLAGS  := -O2 -std=c99 -Wall -Wextra -DNDEBUG -DUSE_NIST_KAT_RNG $(OPENSSL_CFLAGS)
+HOSTLDFLAGS := $(OPENSSL_LIBS)
+
+# 目錄與檔案（自行依專案調整）
+KAT_DIR     ?= kat
+KAT_SRCS    := $(KAT_DIR)/PQCgenKAT_sign.c $(KAT_DIR)/rng.c
+KAT_INCS    := -I. -I$(KAT_DIR) -Iref
+
+KAT_BUILD   ?= kat
+KAT_BIN     := $(KAT_BUILD)/PQCgenKAT_sign
+
+kat:
+	@mkdir -p $(KAT_BUILD)
+	$(HOSTCC) $(HOSTCFLAGS) $(KAT_INCS) $(KAT_SRCS) kat/PQCgenKAT_sign.c $(SRCS) -o $(KAT_BIN) $(HOSTLDFLAGS)
+	@echo "[KAT] running in $(KAT_BUILD)"
+	@cd $(KAT_BUILD) && ./PQCgenKAT_sign
+	@ls -l $(KAT_BUILD)/PQCsignKAT_*.req $(KAT_BUILD)/PQCsignKAT_*.rsp 2>/dev/null || true
