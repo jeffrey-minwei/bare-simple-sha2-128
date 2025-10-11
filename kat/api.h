@@ -12,8 +12,8 @@ You are solely responsible for determining the appropriateness of using and dist
 #define api_h
 
 //  Set these three values apropriately for your algorithm
-#define CRYPTO_SECRETKEYBYTES 256
-#define CRYPTO_PUBLICKEYBYTES 85
+#define CRYPTO_SECRETKEYBYTES 64
+#define CRYPTO_PUBLICKEYBYTES 32
 #define CRYPTO_BYTES 128
 
 // Change the algorithm name
