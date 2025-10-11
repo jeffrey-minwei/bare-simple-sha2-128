@@ -41,9 +41,6 @@ main()
     unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     int                 ret_val;
 
-    return 0;
-
-    
     // Create the REQUEST file
     sprintf(fn_req, "PQCsignKAT_%d.req", CRYPTO_SECRETKEYBYTES);
     if ( (fp_req = fopen(fn_req, "w")) == NULL ) {
@@ -74,6 +71,8 @@ main()
         fprintf(fp_req, "sm =\n\n");
     }
     fclose(fp_req);
+
+    return 0;
     
     //Create the RESPONSE file based on what's in the REQUEST file
     if ( (fp_req = fopen(fn_req, "r")) == NULL ) {
