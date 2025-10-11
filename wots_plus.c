@@ -52,7 +52,7 @@ void _chain(uint8_t out[SPX_N],
  * @param pk_seed [in] 
  * @return void
  */
-void wots_pk_gen(uint8_t pk[SPX_N],
+void wots_pk_gen(uint8_t wots_pk[SPX_N],
                  const psa_key_id_t sk_seed, 
                  const psa_key_id_t pk_seed, 
                  ADRS adrs)
@@ -100,7 +100,7 @@ void wots_pk_gen(uint8_t pk[SPX_N],
 
     // Page 18, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
     // 13: pk ← T_len(PK.seed, wotspkADRS, tmp)     ▷ compress public key
-    T(SPX_LEN, pk_seed, wotspkADRS, tmp, pk);  // pk is a n length array
+    T(SPX_LEN, pk_seed, wotspkADRS, tmp, wots_pk);  // pk is a n length array
 }
 
 static size_t bytes_for_len2_lgw(size_t len2, size_t lgw) {

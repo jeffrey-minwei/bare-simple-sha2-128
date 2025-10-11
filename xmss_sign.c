@@ -1,4 +1,5 @@
 #include "common.h"
+#include "thf.h"
 #include "addr.h"
 #include "xmss_sign.h"
 #include "wots_plus.h"
@@ -22,7 +23,8 @@ void xmss_node(uint8_t out_root[SPX_N],
     {
         set_type_and_clear(adrs, WOTS_HASH);
         set_key_pair_addr(adrs, i);
-        // TODO 𝑛𝑜𝑑𝑒 ← wots_pkGen(SK.seed, PK.seed, ADRS)
+        // 𝑛𝑜𝑑𝑒 ← wots_pkGen(SK.seed, PK.seed, ADRS)
+        wots_pk_gen(out_root, sk_seed, pk_seed, adrs);
     }
     else
     {
@@ -38,7 +40,12 @@ void xmss_node(uint8_t out_root[SPX_N],
         set_tree_height(adrs, z);
         set_tree_index(adrs, i);   
 
-        // TODO 𝑛𝑜𝑑𝑒 ← H(PK.seed, ADRS, 𝑙𝑛𝑜𝑑𝑒 ∥ 𝑟𝑛𝑜𝑑𝑒)
+        // 𝑛𝑜𝑑𝑒 ← H(PK.seed, ADRS, 𝑙𝑛𝑜𝑑𝑒 ∥ 𝑟𝑛𝑜𝑑𝑒)
+        uint8_t M[32];  // 32 means 16 * 2, 16 is SPX_N
+        memcpy(M, lnode, SPX_N);
+        memcpy(M + SPX_N, rnode, SPX_N);
+
+        H(pk_seed, adrs, M, out_root);
     }
 }
 

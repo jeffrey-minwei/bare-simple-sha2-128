@@ -12,7 +12,7 @@ void test_wots_plus();
  * @param pk_seed [in] 
  * @return void
  */
-void wots_pk_gen(uint8_t pk[SPX_N],
+void wots_pk_gen(uint8_t wots_pk[SPX_N],
                  const psa_key_id_t sk_seed,  
                  const psa_key_id_t pk_seed,
                  ADRS adrs);
