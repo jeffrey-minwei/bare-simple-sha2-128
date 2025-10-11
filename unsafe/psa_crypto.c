@@ -192,6 +192,9 @@ void h_msg(uint8_t out[SPX_M], // 𝑚 is 30 for SLH-DSA-SHA2-128s
     mgf1_sha256_len30(out, in, sizeof(in), SPX_M);
 }
 
+/**
+ * NIST PQC KAT
+ */
 int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 {
     uint8_t rand[3*SPX_N];
@@ -217,4 +220,43 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 
     memcpy(pk + SPX_N, pk_root, SPX_N);
     memcpy(pk + SPX_N, pk_root, SPX_N);
+
+    return 0;
+}
+
+/**
+ * NIST PQC KAT
+ */
+int crypto_sign(unsigned char *sm, unsigned long long *smlen,
+                const unsigned char *m, unsigned long long mlen,
+                const unsigned char *sk)
+{
+    // sk: SK.seed || SK.prf || pk.seed || pk.root
+    unsigned char *p = sk;
+    memcpy(sk_seed, p, SPX_N); p += SPX_N;
+    memcpy(sk_prf, p, SPX_N); p += SPX_N;
+    memcpy(pk_seed, p, SPX_N); p += SPX_N;
+    memcpy(pk_root, p, SPX_N);
+
+    psa_key_id_t sk_key_id = 1;
+    psa_key_id_t sk_prf_key_id = 2;
+    psa_key_id_t pk_key_id = 3;
+
+    uint8_t sig_out[SPX_BYTES];
+    uint8_t optrand[SPX_N] = {0};
+    slh_dsa_sign(sig_out, sk_key_id, sk_prf_key_id, pk_key_id, m, mlen, optrand);
+
+    smlen = SPX_BYTES;
+    memcpy(sm, sig_out, SPX_BYTES);
+    return 0;
+}
+
+/**
+ * NIST PQC KAT
+ */
+int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
+                     const unsigned char *sm, unsigned long long smlen,
+                     const unsigned char *pk)
+{
+    return 0;
 }
