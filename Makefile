@@ -1,11 +1,11 @@
 .DEFAULT_GOAL := all
-.PHONY: all
+.PHONY: all kat
 
 # ===== nRF nrfxlib (CC31x) autodetect: headers + libs =====
 NRFXLIB_DIR ?= $(abspath third_party/nrfxlib)
 
-# clean help ci-run 以外一律要指定 TARGET
-ifeq (,$(filter clean help ci-run%,$(MAKECMDGOALS)))
+# kat clean help ci-run 以外一律要指定 TARGET
+ifeq (,$(filter kat clean help ci-run%,$(MAKECMDGOALS)))
 
 ifeq ($(strip $(TARGET)),)
 $(error TARGET is required, ex. make TARGET=nrf52840)
@@ -19,7 +19,7 @@ endif
 endif
 
 OBJS := addr_compressed.o thf.o common.o addr.o \
-        base_2b.o keygen.o sha256.o \
+        base_2b.o sha256.o \
         slh_dsa_sign.o fors_sign.o 
 
 OBJS += xmss_sign.o wots_plus.o \
@@ -29,6 +29,7 @@ CC := arm-none-eabi-gcc
 
 ifeq ($(TARGET),nrf52840)
   PLATFORM := platforms/nrf52840
+  STARTUP := $(PLATFORM)/startup.c
   CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra 
             #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include 
@@ -41,6 +42,7 @@ ifeq ($(TARGET),nrf52840)
 
 else ifeq ($(TARGET),nrf5340dk)
   PLATFORM := platforms/nrf5340dk
+  STARTUP := $(PLATFORM)/startup.c
   CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra 
   LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf5340dk.map \
@@ -52,7 +54,6 @@ else ifeq ($(TARGET),nrf5340dk)
 
 endif
 
-STARTUP := $(PLATFORM)/startup.c
 FLOAT_DIR  := soft-float
 
 #SHA256 := $(PLATFORM)/sha256.c
@@ -74,8 +75,7 @@ CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
 endif
 
 SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c \
-        main.c \
-        keygen.c $(SHA256) unsafe/hmac_sha256.c \
+        $(SHA256) unsafe/hmac_sha256.c \
         unsafe/mgf1_sha256_len30.c \
         uart_min.c slh_dsa_sign.c \
         base_2b.c addr_compressed.c addr.c \
@@ -116,7 +116,7 @@ all: sign.elf
 
 sign.elf:  $(PLATFORM)/linker.ld $(OBJS) $(RNG_OBJS)
 	@echo "==> start building with $(CC), output should be $(ELF)"
-	$(CC) $(CFLAGS) $(SRCS) -v $(LDFLAGS) -o $(ELF)
+	$(CC) $(CFLAGS) main.c $(SRCS) -v $(LDFLAGS) -o $(ELF)
 	$(NM) $(ELF) | grep -E 'memcpy|__aeabi_memcpy'
 
 clean:
@@ -140,3 +140,31 @@ ci-run-nrf5340dk: $(ELF) $(RESC)
 	$(RENODE) --console --disable-xwt \
 		-e "set ansi false; include @$(RESC); sleep 2; q" \
 		| $(strip_ansi)
+
+
+# 主機編譯器與 OpenSSL
+HOSTCC      ?= gcc
+OPENSSL_CFLAGS := $(shell pkg-config --cflags openssl 2>/dev/null)
+OPENSSL_LIBS   := $(shell pkg-config --libs   openssl 2>/dev/null)
+ifeq ($(strip $(OPENSSL_LIBS)),)
+  OPENSSL_LIBS := -lcrypto
+endif
+
+HOSTCFLAGS  := -O2 -std=c11 -Wall -Wextra -DNDEBUG -DUSE_NIST_KAT_RNG $(OPENSSL_CFLAGS)
+HOSTLDFLAGS := $(OPENSSL_LIBS)
+
+# 目錄與檔案（自行依專案調整）
+KAT_DIR     ?= kat
+KAT_SRCS    := $(KAT_DIR)/PQCgenKAT_sign.c 
+KAT_INCS    := -I. -I$(KAT_DIR) -Iref -Ithird_party/mbedtls/include
+
+KAT_BUILD   ?= kat
+KAT_BIN     := $(KAT_BUILD)/PQCgenKAT_sign
+
+kat:
+	@mkdir -p $(KAT_BUILD)
+	$(HOSTCC) $(HOSTCFLAGS) $(KAT_INCS) $(KAT_SRCS) -DX86 $(SRCS) -o $(KAT_BIN) $(HOSTLDFLAGS)
+	@echo "[KAT] running in $(KAT_BUILD)"
+	@cd $(KAT_BUILD) && ./PQCgenKAT_sign
+	@ls -l $(KAT_BUILD)/PQCsignKAT_*.req $(KAT_BUILD)/PQCsignKAT_*.rsp 2>/dev/null || true
+	@cat $(KAT_BUILD)/PQCsignKAT_64.rsp

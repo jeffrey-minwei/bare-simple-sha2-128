@@ -3,7 +3,6 @@
 #include "uart_min.h"
 #include "common.h"
 #include "psa/crypto.h"
-#include "keygen.h"
 #include "sha256.h"
 #include "slh_dsa_sign.h"
 

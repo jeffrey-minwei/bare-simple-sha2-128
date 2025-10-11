@@ -3,6 +3,7 @@
 
 #include "psa/crypto.h"
 #include "../kat/rng.h"
+#include "../kat/api.h"
 #include "../params.h"
 #include "../xmss_sign.h"
 #include "../sha256.h"
@@ -189,4 +190,83 @@ void h_msg(uint8_t out[SPX_M], // 𝑚 is 30 for SLH-DSA-SHA2-128s
 
     // MGF1-SHA-256(𝑅 ∥ PK.seed ∥ SHA-256(...), 𝑚)
     mgf1_sha256_len30(out, in, sizeof(in), SPX_M);
+}
+
+/**
+ * NIST PQC KAT
+ */
+int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
+{
+    uint8_t rand[3*SPX_N];
+    randombytes(rand, sizeof(rand));
+
+    // sk: SK.seed || SK.prf || pk.seed || pk.root
+    memcpy(sk, rand, sizeof(rand));
+
+    uint8_t *p = rand;
+    // 第 3 個 n bytes 是 pk.seed
+    memcpy(pk, p + (2 * SPX_N), SPX_N);
+
+    // 計算 pk.root
+    ADRS adrs;
+    memset(adrs, 0, 32);
+
+    int d = 7;  // SLH-DSA-SHA2-128s, d is 7
+    set_layer_addr(adrs, d-1);
+
+    unsigned int h_prime = 9;
+
+    uint8_t pk_root[SPX_N] = {0};
+    // PK.root ← xmss_node(SK.seed, 0, ℎ′, PK.seed, ADRS)
+    //xmss_node(pk_root, sk_seed, 0, h_prime, pk_seed, adrs);
+
+    memcpy(sk + 3*SPX_N, pk_root, SPX_N);
+    memcpy(pk + SPX_N, pk_root, SPX_N);
+
+    return 0;
+}
+
+/**
+ * NIST PQC KAT
+ */
+int crypto_sign(unsigned char *sm, unsigned long long *smlen,
+                const unsigned char *m, unsigned long long mlen,
+                const unsigned char *sk)
+{
+    // sk: SK.seed || SK.prf || pk.seed || pk.root
+    unsigned char *p = sk;
+    memcpy(sk_seed, p, SPX_N); p += SPX_N;
+    memcpy(sk_prf, p, SPX_N); p += SPX_N;
+    memcpy(pk_seed, p, SPX_N); p += SPX_N;
+    memcpy(pk_root, p, SPX_N);
+
+    psa_key_id_t sk_key_id = 1;
+    psa_key_id_t sk_prf_key_id = 2;
+    psa_key_id_t pk_key_id = 3;
+
+    uint8_t sig_out[SPX_BYTES];
+    uint8_t optrand[SPX_N] = {0};
+    slh_dsa_sign(sig_out, sk_key_id, sk_prf_key_id, pk_key_id, m, mlen, optrand);
+
+    smlen = SPX_BYTES;
+    memcpy(sm, sig_out, SPX_BYTES);
+    return 0;
+}
+
+/**
+ * Not really verify signature, just return success
+ */
+int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
+                     const unsigned char *sm, unsigned long long smlen,
+                     const unsigned char *pk)
+{
+    (void)pk;
+    if (smlen < (unsigned long long)CRYPTO_BYTES) {
+        return -1;  // malformed input
+    }
+
+    unsigned long long msglen = smlen - (unsigned long long)CRYPTO_BYTES;
+    memmove(m, sm + CRYPTO_BYTES, (size_t)msglen);
+    *mlen = msglen;
+    return 0;       // always "valid" (KAT stub)
 }

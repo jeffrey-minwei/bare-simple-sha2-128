@@ -1,7 +1,15 @@
 #include "uart_min.h"
 
+#ifdef X86
+  #define RETURN_IF_X86 return
+#else
+  #define RETURN_IF_X86 ((void)0)
+#endif
+
 void uarte0_init(void)
 {
+    RETURN_IF_X86;
+
     /* 取消 HWFC，只用 TX/RX */
     UARTE_PSEL_RTS = 0xFFFFFFFFu;
     UARTE_PSEL_CTS = 0xFFFFFFFFu;
@@ -17,7 +25,10 @@ void uarte0_init(void)
     UARTE_EVENTS_ENDTX = 0;
 }
 
-void uarte0_hex_byte(uint8_t b) {
+void uarte0_hex_byte(uint8_t b) 
+{
+    RETURN_IF_X86;
+
     char hex[2];
     const char *digits = "0123456789ABCDEF";
     hex[0] = digits[b >> 4];
@@ -27,6 +38,8 @@ void uarte0_hex_byte(uint8_t b) {
 
 void uarte0_tx(const void *buf, uint32_t len)
 {
+    RETURN_IF_X86;
+
     UARTE_TXD_PTR    = (uint32_t)buf;
     UARTE_TXD_MAXCNT = len;
 
@@ -42,6 +55,8 @@ void uarte0_tx(const void *buf, uint32_t len)
 // ========== 傳送字串 ==========
 void uarte0_puts(const char *s)
 {
+    RETURN_IF_X86;
+
     size_t n = 0;
     while (s[n]) n++;
     uarte0_tx(s, n);
@@ -50,6 +65,8 @@ void uarte0_puts(const char *s)
 // ========== 十六進位列印 ==========
 void uarte0_hex(const char *label, const uint8_t *data, size_t len)
 {
+    RETURN_IF_X86;
+
     static const char hexmap[] = "0123456789ABCDEF";
     char buf[4]; // " XX"
     uarte0_puts(label);
@@ -65,7 +82,10 @@ void uarte0_hex(const char *label, const uint8_t *data, size_t len)
     uarte0_puts("\r\n");
 }
 
-void uarte0_hex_all(const char *label, const uint8_t *buf, size_t len) {
+void uarte0_hex_all(const char *label, const uint8_t *buf, size_t len) 
+{
+    RETURN_IF_X86;
+
     uarte0_puts(label);
     uarte0_puts(" (");
     // 印出長度

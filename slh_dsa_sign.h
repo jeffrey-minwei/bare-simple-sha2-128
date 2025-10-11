@@ -2,7 +2,6 @@
 #define SLH_DSA_SIGN_H
 
 #include "common.h"
-#include "keygen.h"
 #include <stddef.h>
 
 int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],

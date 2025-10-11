@@ -24,7 +24,7 @@ int		FindMarker(FILE *infile, const char *marker);
 int		ReadHex(FILE *infile, unsigned char *A, int Length, char *str);
 void	fprintBstr(FILE *fp, char *S, unsigned char *A, unsigned long long L);
 
-char    AlgName[] = "My Alg Name";
+char    AlgName[] = "SLH-DSA";
 
 int
 main()
@@ -40,7 +40,7 @@ main()
     int                 done;
     unsigned char       pk[CRYPTO_PUBLICKEYBYTES], sk[CRYPTO_SECRETKEYBYTES];
     int                 ret_val;
-    
+
     // Create the REQUEST file
     sprintf(fn_req, "PQCsignKAT_%d.req", CRYPTO_SECRETKEYBYTES);
     if ( (fp_req = fopen(fn_req, "w")) == NULL ) {
@@ -71,7 +71,7 @@ main()
         fprintf(fp_req, "sm =\n\n");
     }
     fclose(fp_req);
-    
+
     //Create the RESPONSE file based on what's in the REQUEST file
     if ( (fp_req = fopen(fn_req, "r")) == NULL ) {
         printf("Couldn't open <%s> for read\n", fn_req);
@@ -79,6 +79,9 @@ main()
     }
     
     fprintf(fp_rsp, "# %s\n\n", CRYPTO_ALGNAME);
+
+    printf("start to generate the public/private keypair and sign ...\n");
+    
     done = 0;
     do {
         if ( FindMarker(fp_req, "count = ") )
@@ -88,15 +91,17 @@ main()
             break;
         }
         fprintf(fp_rsp, "count = %d\n", count);
+        printf("count = %d\n", count);       
         
         if ( !ReadHex(fp_req, seed, 48, "seed = ") ) {
             printf("ERROR: unable to read 'seed' from <%s>\n", fn_req);
             return KAT_DATA_ERROR;
         }
         fprintBstr(fp_rsp, "seed = ", seed, 48);
-        
+
         randombytes_init(seed, NULL, 256);
-        
+        printf("randombytes_init done\n");
+
         if ( FindMarker(fp_req, "mlen = ") )
             fscanf(fp_req, "%llu", &mlen);
         else {
@@ -121,7 +126,9 @@ main()
             return KAT_CRYPTO_FAILURE;
         }
         fprintBstr(fp_rsp, "pk = ", pk, CRYPTO_PUBLICKEYBYTES);
-        fprintBstr(fp_rsp, "sk = ", sk, CRYPTO_SECRETKEYBYTES);
+        fprintBstr(fp_rsp, "sk = ", sk, CRYPTO_SECRETKEYBYTES);        
+        printf("crypto_sign_keypair done\n");
+        return 0;
         
         if ( (ret_val = crypto_sign(sm, &smlen, m, mlen, sk)) != 0) {
             printf("crypto_sign returned <%d>\n", ret_val);
