@@ -203,6 +203,7 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
     // sk: SK.seed || SK.prf || pk.seed || pk.root
     memcpy(sk, rand, sizeof(rand));
 
+    return 0;
     // 第 3 個 n bytes 是 pk.seed
     memcpy(pk, ((uint8_t *)rand[0]) + (2 * SPX_N), SPX_N);
     
