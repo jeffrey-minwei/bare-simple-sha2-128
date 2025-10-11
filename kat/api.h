@@ -14,7 +14,7 @@ You are solely responsible for determining the appropriateness of using and dist
 //  Set these three values apropriately for your algorithm
 #define CRYPTO_SECRETKEYBYTES 64
 #define CRYPTO_PUBLICKEYBYTES 32
-#define CRYPTO_BYTES 128
+#define CRYPTO_BYTES 7856
 
 // Change the algorithm name
 #define CRYPTO_ALGNAME "SLH-DSA"
