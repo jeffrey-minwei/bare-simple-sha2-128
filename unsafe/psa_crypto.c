@@ -214,9 +214,6 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
     int d = 7;  // SLH-DSA-SHA2-128s, d is 7
     set_layer_addr(adrs, d-1);
 
-    return 0;
-    // this line might be segmentation fault (core dumped)
-
     unsigned int h_prime = 9;
 
     uint8_t pk_root[SPX_N] = {0};
