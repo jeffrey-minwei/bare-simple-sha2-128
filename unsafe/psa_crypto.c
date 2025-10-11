@@ -248,8 +248,9 @@ int crypto_sign(unsigned char *sm, unsigned long long *smlen,
     uint8_t optrand[SPX_N] = {0};
     slh_dsa_sign(sig_out, sk_key_id, sk_prf_key_id, pk_key_id, m, mlen, optrand);
 
-    smlen = SPX_BYTES;
-    memcpy(sm, sig_out, SPX_BYTES);
+    smlen = sizeof(sig_out) + mlen;
+
+    memcpy(sm, sig_out, smlen);
     return 0;
 }
 
@@ -263,8 +264,7 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
     (void)pk;
     if (smlen < (unsigned long long)CRYPTO_BYTES) {
         printf("crypto_sign_open: smlen %d (CRYPTO_BYTES %d)\n", smlen, CRYPTO_BYTES);
-        //return -1;  // malformed input
-        return 0;
+        return -1;  // malformed input
     }
 
     unsigned long long msglen = smlen - (unsigned long long)CRYPTO_BYTES;
