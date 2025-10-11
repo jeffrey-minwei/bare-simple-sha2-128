@@ -197,10 +197,10 @@ void h_msg(uint8_t out[SPX_M], // 𝑚 is 30 for SLH-DSA-SHA2-128s
  */
 int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 {
-    return 0;
     uint8_t rand[3*SPX_N];
     randombytes(rand, sizeof(rand));
 
+    return 0;
     // sk: SK.seed || SK.prf || pk.seed || pk.root
     memcpy(sk, rand, sizeof(rand));
 
