@@ -30,4 +30,22 @@
 #define SPX_FORS_SIG_LENGTH (SPX_K * (SPX_A + 1 ) * SPX_N)
 #endif
 
+
+#define SPX_TREE_HEIGHT 8   // 例如 8 層 Merkle 樹
+
+#define SPX_FULL_HEIGHT 60        // 總高度
+#define SPX_D 20                  // 層數
+#define SPX_WOTS_BYTES  2144      // WOTS+ 簽章長度
+
+//#define SPX_FORS_BYTES  1700      // FORS 簽章長度
+#define SPX_FORS_HEIGHT 9
+#define SPX_FORS_TREES  30
+
+// 要簽的 bits 數 / 8 → bytes
+#define SPX_FORS_MSG_BYTES ((SPX_FORS_HEIGHT * SPX_FORS_TREES + 7) / 8)
+#define SPX_FORS_BYTES (SPX_FORS_TREES * SPX_FORS_HEIGHT * SPX_N)
+
+// 總簽章長度
+#define SPX_BYTES (SPX_N + SPX_FORS_BYTES + SPX_D * (SPX_WOTS_BYTES + (SPX_FULL_HEIGHT/SPX_D)*SPX_N))
+
 #endif
