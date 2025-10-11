@@ -123,7 +123,6 @@ main()
         }
         fprintBstr(fp_rsp, "pk = ", pk, CRYPTO_PUBLICKEYBYTES);
         fprintBstr(fp_rsp, "sk = ", sk, CRYPTO_SECRETKEYBYTES);        
-        printf("crypto_sign_keypair done\n");
         
         if ( (ret_val = crypto_sign(sm, &smlen, m, mlen, sk)) != 0) {
             printf("crypto_sign returned <%d>\n", ret_val);
