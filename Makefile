@@ -155,7 +155,7 @@ HOSTLDFLAGS := $(OPENSSL_LIBS)
 # 目錄與檔案（自行依專案調整）
 KAT_DIR     ?= kat
 KAT_SRCS    := $(KAT_DIR)/PQCgenKAT_sign.c $(KAT_DIR)/rng.c
-KAT_INCS    := -I. -I$(KAT_DIR) -Iref
+KAT_INCS    := -I. -I$(KAT_DIR) -Iref -Ithird_party/mbedtls/include
 
 KAT_BUILD   ?= kat
 KAT_BIN     := $(KAT_BUILD)/PQCgenKAT_sign
