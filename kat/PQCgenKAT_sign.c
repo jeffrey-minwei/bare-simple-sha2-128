@@ -72,8 +72,6 @@ main()
     }
     fclose(fp_req);
 
-    return 0;
-    
     //Create the RESPONSE file based on what's in the REQUEST file
     if ( (fp_req = fopen(fn_req, "r")) == NULL ) {
         printf("Couldn't open <%s> for read\n", fn_req);
@@ -81,6 +79,10 @@ main()
     }
     
     fprintf(fp_rsp, "# %s\n\n", CRYPTO_ALGNAME);
+
+    printf("start to generate the public/private keypair and sign ...\n");
+    return 0;
+    
     done = 0;
     do {
         if ( FindMarker(fp_req, "count = ") )
