@@ -218,7 +218,7 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 
     uint8_t pk_root[SPX_N] = {0};
     // PK.root ← xmss_node(SK.seed, 0, ℎ′, PK.seed, ADRS)
-    xmss_node(pk_root, sk_seed, 0, h_prime, pk_seed, adrs);
+    //xmss_node(pk_root, sk_seed, 0, h_prime, pk_seed, adrs);
 
     memcpy(sk + 3*SPX_N, pk_root, SPX_N);
     memcpy(pk + SPX_N, pk_root, SPX_N);
