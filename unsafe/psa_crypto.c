@@ -248,6 +248,8 @@ int crypto_sign(unsigned char *sm, unsigned long long *smlen,
     uint8_t optrand[SPX_N] = {0};
     slh_dsa_sign(sig_out, sk_key_id, sk_prf_key_id, pk_key_id, m, mlen, optrand);
 
+    // See https://github.com/sphincs/sphincsplus/blob/consistent-basew/ref/sign.c#L254
+    memmove(sm + SPX_BYTES, m, mlen);
     *smlen = sizeof(sig_out) + mlen;
 
     memcpy(sm, sig_out, *smlen);
