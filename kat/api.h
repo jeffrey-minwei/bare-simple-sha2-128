@@ -17,7 +17,7 @@ You are solely responsible for determining the appropriateness of using and dist
 #define CRYPTO_BYTES 128
 
 // Change the algorithm name
-#define CRYPTO_ALGNAME "UserDefinedAlgName"
+#define CRYPTO_ALGNAME "SLH-DSA"
 
 int
 crypto_sign_keypair(unsigned char *pk, unsigned char *sk);

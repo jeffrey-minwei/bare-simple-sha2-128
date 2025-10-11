@@ -3,6 +3,7 @@
 
 #include "psa/crypto.h"
 #include "../kat/rng.h"
+#include "../kat/api.h"
 #include "../params.h"
 #include "../xmss_sign.h"
 #include "../sha256.h"
@@ -189,4 +190,31 @@ void h_msg(uint8_t out[SPX_M], // 𝑚 is 30 for SLH-DSA-SHA2-128s
 
     // MGF1-SHA-256(𝑅 ∥ PK.seed ∥ SHA-256(...), 𝑚)
     mgf1_sha256_len30(out, in, sizeof(in), SPX_M);
+}
+
+int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
+{
+    uint8_t rand[3*SPX_N];
+    randombytes(rand, sizeof(rand));
+
+    memcpy(sk, rand, sizeof(rand));
+
+    // 第 3 個 n bytes 是 pk.seed
+    memcpy(pk, rand[2*SPX_N], SPX_N);
+    
+    // 計算 pk.root
+    ADRS adrs;
+    memset(adrs, 0, 32);
+
+    int d = 7;  // SLH-DSA-SHA2-128s, d is 7
+    set_layer_addr(adrs, d-1);
+
+    unsigned int h_prime = 9;
+
+    uint8_t pk_root[SPX_N] = {0};
+    // PK.root ← xmss_node(SK.seed, 0, ℎ′, PK.seed, ADRS)
+    xmss_node(pk_root, sk_seed, 0, h_prime, pk_seed, adrs);
+
+    memcpy(pk + SPX_N, pk_root, SPX_N);
+    memcpy(pk + SPX_N, pk_root, SPX_N);
 }
