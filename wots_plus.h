@@ -7,10 +7,11 @@ void test_wots_plus();
 
 /**
  * See Page 18, Algorithm 6 wots_pkGen(SK.seed, PK.seed, ADRS), https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
- * @param pk      [out] WOTS+ public key 𝑝𝑘.
- * @param sk_seed [in] 
- * @param pk_seed [in] 
- * @return void
+ * \param pk      [out] WOTS+ public key 𝑝𝑘.
+ * \param sk_seed [in] 
+ * \param pk_seed [in] 
+ * \param adrs    [out]
+ * \return void
  */
 void wots_pk_gen(uint8_t wots_pk[SPX_N],
                  const psa_key_id_t sk_seed,  
