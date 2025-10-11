@@ -49,7 +49,7 @@
 // 要簽的 bits 數 / 8 → bytes
 #define SPX_FORS_MSG_BYTES ((SPX_FORS_HEIGHT * SPX_FORS_TREES + 7) / 8)
 
-// 總簽章長度 7856
-#define SPX_BYTES (SPX_N + SPX_FORS_SIG_LENGTH + SPX_HT_SIG_LENGTH)
+// 總簽章長度 7856  (SPX_N + SPX_FORS_SIG_LENGTH + SPX_HT_SIG_LENGTH)
+#define SPX_BYTES 7856
 
 #endif
