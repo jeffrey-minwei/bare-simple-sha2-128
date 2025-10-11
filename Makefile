@@ -19,7 +19,7 @@ endif
 endif
 
 OBJS := addr_compressed.o thf.o common.o addr.o \
-        base_2b.o keygen.o sha256.o \
+        base_2b.o sha256.o \
         slh_dsa_sign.o fors_sign.o 
 
 OBJS += xmss_sign.o wots_plus.o \
@@ -75,7 +75,7 @@ CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
 endif
 
 SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c \
-        keygen.c $(SHA256) unsafe/hmac_sha256.c \
+        $(SHA256) unsafe/hmac_sha256.c \
         unsafe/mgf1_sha256_len30.c \
         uart_min.c slh_dsa_sign.c \
         base_2b.c addr_compressed.c addr.c \
