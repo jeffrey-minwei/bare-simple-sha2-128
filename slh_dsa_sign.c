@@ -67,8 +67,6 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
     //13: ADRS.setKeyPairAddress(𝑖𝑑𝑥𝑙𝑒𝑎𝑓)
     set_key_pair_addr(adrs, idx_leaf);
 
-    return PSA_SUCCESS;
-
     uint8_t mhash[SPX_FORS_MSG_BYTES];
     // 14: SIG_FORS ← fors_sign(𝑚𝑑, SK.seed, PK.seed, ADRS)
     // 15: SIG ← SIG ∥ SIG_FORS
@@ -80,6 +78,5 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
     // 17: SIG_HT ← ht_sign(PK_FORS, SK.seed, PK.seed, 𝑖𝑑𝑥𝑡𝑟𝑒𝑒, 𝑖𝑑𝑥𝑙𝑒𝑎𝑓)
     // 18: SIG ← SIG ∥ SIG_HT
 
-    return 0;
-
+    return PSA_SUCCESS;
 }
