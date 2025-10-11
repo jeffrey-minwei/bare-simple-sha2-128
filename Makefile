@@ -149,7 +149,7 @@ ifeq ($(strip $(OPENSSL_LIBS)),)
   OPENSSL_LIBS := -lcrypto
 endif
 
-HOSTCFLAGS  := -O2 -std=c99 -Wall -Wextra -DNDEBUG -DUSE_NIST_KAT_RNG $(OPENSSL_CFLAGS)
+HOSTCFLAGS  := -O2 -std=c11 -Wall -Wextra -DNDEBUG -DUSE_NIST_KAT_RNG $(OPENSSL_CFLAGS)
 HOSTLDFLAGS := $(OPENSSL_LIBS)
 
 # 目錄與檔案（自行依專案調整）

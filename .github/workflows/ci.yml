@@ -36,6 +36,12 @@ jobs:
           path: ${{ runner.tool_cache }}/arm-gnu-toolchain-${{ env.ARM_VER }}
           key: arm-gnu-${{ env.ARM_VER }}-linux-x64
 
+      - name: KAT
+        run: |
+          set -e
+          make clean
+          make TARGET=x86 kat
+
       - name: Setup ARM toolchain
         run: |
           TOOLDIR="$RUNNER_TOOL_CACHE/arm-gnu-toolchain-${ARM_VER}"
