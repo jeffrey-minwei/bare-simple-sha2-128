@@ -268,7 +268,9 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
 
     // See See https://github.com/sphincs/sphincsplus/blob/consistent-basew/ref/sign.c#L269
     if (smlen < SPX_BYTES) {
+        #ifdef X86
         printf("crypto_sign_open: smlen %d (SPX_BYTES %d)\n", smlen, SPX_BYTES);
+        #endif
         return -1;  // malformed input
     }
 
