@@ -167,3 +167,4 @@ kat:
 	@echo "[KAT] running in $(KAT_BUILD)"
 	@cd $(KAT_BUILD) && ./PQCgenKAT_sign
 	@ls -l $(KAT_BUILD)/PQCsignKAT_*.req $(KAT_BUILD)/PQCsignKAT_*.rsp 2>/dev/null || true
+	@cat $(KAT_BUILD)/PQCsignKAT_64.rsp
