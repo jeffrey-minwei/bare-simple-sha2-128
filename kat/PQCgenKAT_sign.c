@@ -100,9 +100,8 @@ main()
         fprintBstr(fp_rsp, "seed = ", seed, 48);
 
         randombytes_init(seed, NULL, 256);
-        printf("randombytes_init done");
+        printf("randombytes_init done\n");
 
-        return 0;
         if ( FindMarker(fp_req, "mlen = ") )
             fscanf(fp_req, "%llu", &mlen);
         else {
@@ -127,7 +126,9 @@ main()
             return KAT_CRYPTO_FAILURE;
         }
         fprintBstr(fp_rsp, "pk = ", pk, CRYPTO_PUBLICKEYBYTES);
-        fprintBstr(fp_rsp, "sk = ", sk, CRYPTO_SECRETKEYBYTES);
+        fprintBstr(fp_rsp, "sk = ", sk, CRYPTO_SECRETKEYBYTES);        
+        printf("crypto_sign_keypair done\n");
+        return 0;
         
         if ( (ret_val = crypto_sign(sm, &smlen, m, mlen, sk)) != 0) {
             printf("crypto_sign returned <%d>\n", ret_val);
