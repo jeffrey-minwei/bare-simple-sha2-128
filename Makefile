@@ -29,6 +29,7 @@ CC := arm-none-eabi-gcc
 
 ifeq ($(TARGET),nrf52840)
   PLATFORM := platforms/nrf52840
+  STARTUP := $(PLATFORM)/startup.c
   CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra 
             #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include 
@@ -41,6 +42,7 @@ ifeq ($(TARGET),nrf52840)
 
 else ifeq ($(TARGET),nrf5340dk)
   PLATFORM := platforms/nrf5340dk
+  STARTUP := $(PLATFORM)/startup.c
   CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra 
   LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf5340dk.map \
@@ -52,7 +54,6 @@ else ifeq ($(TARGET),nrf5340dk)
 
 endif
 
-STARTUP := $(PLATFORM)/startup.c
 FLOAT_DIR  := soft-float
 
 #SHA256 := $(PLATFORM)/sha256.c
