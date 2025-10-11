@@ -81,7 +81,6 @@ main()
     fprintf(fp_rsp, "# %s\n\n", CRYPTO_ALGNAME);
 
     printf("start to generate the public/private keypair and sign ...\n");
-    return 0;
     
     done = 0;
     do {
