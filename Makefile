@@ -163,7 +163,7 @@ KAT_BIN     := $(KAT_BUILD)/PQCgenKAT_sign
 
 kat:
 	@mkdir -p $(KAT_BUILD)
-	$(HOSTCC) $(HOSTCFLAGS) $(KAT_INCS) $(KAT_SRCS) kat/PQCgenKAT_sign.c $(SRCS) -o $(KAT_BIN) $(HOSTLDFLAGS)
+	$(HOSTCC) $(HOSTCFLAGS) $(KAT_INCS) $(KAT_SRCS) $(SRCS) -o $(KAT_BIN) $(HOSTLDFLAGS)
 	@echo "[KAT] running in $(KAT_BUILD)"
 	@cd $(KAT_BUILD) && ./PQCgenKAT_sign
 	@ls -l $(KAT_BUILD)/PQCsignKAT_*.req $(KAT_BUILD)/PQCsignKAT_*.rsp 2>/dev/null || true
