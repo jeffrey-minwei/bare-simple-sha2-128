@@ -79,8 +79,6 @@ main()
     }
     
     fprintf(fp_rsp, "# %s\n\n", CRYPTO_ALGNAME);
-
-    printf("start to generate the public/private keypair and sign ...\n");
     
     done = 0;
     do {
@@ -91,7 +89,6 @@ main()
             break;
         }
         fprintf(fp_rsp, "count = %d\n", count);
-        printf("count = %d\n", count);       
         
         if ( !ReadHex(fp_req, seed, 48, "seed = ") ) {
             printf("ERROR: unable to read 'seed' from <%s>\n", fn_req);
@@ -100,7 +97,6 @@ main()
         fprintBstr(fp_rsp, "seed = ", seed, 48);
 
         randombytes_init(seed, NULL, 256);
-        printf("randombytes_init done\n");
 
         if ( FindMarker(fp_req, "mlen = ") )
             fscanf(fp_req, "%llu", &mlen);
