@@ -53,9 +53,7 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
 
     // 5: 𝑑𝑖𝑔𝑒𝑠𝑡 ← H𝑚𝑠𝑔(𝑅, PK.seed, PK.root, 𝑀 ) ▷ compute message digest
     uint8_t out[SPX_M];
-    h_msg(out, R, pk_key_id, m, mlen);
-
-    return PSA_SUCCESS;
+    //h_msg(out, R, pk_key_id, m, mlen);   
 
     // TODO 
     unsigned int idx_tree = 0;
@@ -68,6 +66,8 @@ int slh_dsa_sign(uint8_t sig_out[SPX_BYTES],
     set_type_and_clear(adrs, FORS_TREE);
     //13: ADRS.setKeyPairAddress(𝑖𝑑𝑥𝑙𝑒𝑎𝑓)
     set_key_pair_addr(adrs, idx_leaf);
+
+    return PSA_SUCCESS;
 
     uint8_t mhash[SPX_FORS_MSG_BYTES];
     // 14: SIG_FORS ← fors_sign(𝑚𝑑, SK.seed, PK.seed, ADRS)
