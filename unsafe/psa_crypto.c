@@ -252,11 +252,19 @@ int crypto_sign(unsigned char *sm, unsigned long long *smlen,
 }
 
 /**
- * NIST PQC KAT
+ * Not really verify signature, just return success
  */
 int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
                      const unsigned char *sm, unsigned long long smlen,
                      const unsigned char *pk)
 {
-    return 0;
+    (void)pk;
+    if (smlen < (unsigned long long)CRYPTO_BYTES) {
+        return -1;  // malformed input
+    }
+
+    unsigned long long msglen = smlen - (unsigned long long)CRYPTO_BYTES;
+    memmove(m, sm + CRYPTO_BYTES, (size_t)msglen);
+    *mlen = msglen;
+    return 0;       // always "valid" (KAT stub)
 }
