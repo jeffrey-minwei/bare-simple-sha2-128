@@ -8,9 +8,6 @@
 #include <stdint.h>
 #include <string.h>
 
-// 你專案裡的參數
-// SPX_N, SPX_SK_BYTES, SPX_PK_BYTES, SPX_BYTES, SPX_FULL_HEIGHT, SPX_D, SPX_FORS_MSG_BYTES
-
 static void prf_msg(uint8_t R[SPX_N],
                     psa_key_id_t sk_prf_key_id,
                     const uint8_t optrand[SPX_N],
