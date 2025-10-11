@@ -211,10 +211,11 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
     ADRS adrs;
     memset(adrs, 0, 32);
 
-    return 0;
-    // this line might be segmentation fault (core dumped)
     int d = 7;  // SLH-DSA-SHA2-128s, d is 7
     set_layer_addr(adrs, d-1);
+
+    return 0;
+    // this line might be segmentation fault (core dumped)
 
     unsigned int h_prime = 9;
 
