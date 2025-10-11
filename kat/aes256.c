@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifndef X86
+
 /* 常數表 */
 static const unsigned char S[256] = {
   0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,
@@ -89,3 +91,5 @@ void AES256_ECB(unsigned char *key,
     subbytes(s); shiftrows(s); addrk(s, rk+56); /* last round no MixColumns */
     memcpy(out, s, 16);
 }
+
+#endif
