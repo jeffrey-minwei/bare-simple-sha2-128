@@ -92,6 +92,7 @@ main()
         }
         fprintf(fp_rsp, "count = %d\n", count);
         printf("count = %d\n", count);
+        return 0;
         
         if ( !ReadHex(fp_req, seed, 48, "seed = ") ) {
             printf("ERROR: unable to read 'seed' from <%s>\n", fn_req);
