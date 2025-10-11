@@ -264,13 +264,16 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
                      const unsigned char *pk)
 {
     (void)pk;
-    if (smlen < (unsigned long long)CRYPTO_BYTES) {
-        printf("crypto_sign_open: smlen %d (CRYPTO_BYTES %d)\n", smlen, CRYPTO_BYTES);
+
+    // See See https://github.com/sphincs/sphincsplus/blob/consistent-basew/ref/sign.c#L269
+    if (smlen < SPX_BYTES) {
+        printf("crypto_sign_open: smlen %d (SPX_BYTES %d)\n", smlen, SPX_BYTES);
         return -1;  // malformed input
     }
 
-    unsigned long long msglen = smlen - (unsigned long long)CRYPTO_BYTES;
-    memmove(m, sm + CRYPTO_BYTES, (size_t)msglen);
-    *mlen = msglen;
-    return 0;       // always "valid" (KAT stub)
+    // See See https://github.com/sphincs/sphincsplus/blob/consistent-basew/ref/sign.c#L275
+    *mlen = smlen - SPX_BYTES;
+    memmove(m, sm + SPX_BYTES, *mlen);
+
+    return 0;
 }
