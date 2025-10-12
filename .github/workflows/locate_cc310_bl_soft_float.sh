@@ -1,5 +1,6 @@
-# .github/workflows/locate_cc310_bl_soft_float.sh
 #!/usr/bin/env bash
+# .github/workflows/locate_cc310_bl_soft_float.sh
+
 set -euo pipefail
 
 ROOT="${NRFXLIB_DIR:-${GITHUB_WORKSPACE:-$PWD}/third_party/nrfxlib}"

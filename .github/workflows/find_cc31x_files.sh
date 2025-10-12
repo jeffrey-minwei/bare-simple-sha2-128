@@ -1,6 +1,8 @@
-# .github/workflows/find_cc31x_files.sh
 #!/usr/bin/env bash
+# .github/workflows/find_cc31x_files.sh
+
 set -euo pipefail
+
 ROOT="${NRFXLIB_DIR:-${GITHUB_WORKSPACE:-$PWD}/third_party/nrfxlib}"
 [ -d "$ROOT" ] || { echo "FATAL: nrfxlib not found at $ROOT"; exit 1; }
 
