@@ -1,23 +1,18 @@
 #!/usr/bin/env bash
 # .github/workflows/locate_cc310_bl_soft_float.sh
-
-set -euo pipefail
+set -Eeuo pipefail
 
 ROOT="${NRFXLIB_DIR:-${GITHUB_WORKSPACE:-$PWD}/third_party/nrfxlib}"
-[ -d "$ROOT" ] || { echo "FATAL: nrfxlib not found at $ROOT" >&2; exit 1; }
+[[ -d "$ROOT" ]] || { echo "FATAL: nrfxlib not found at $ROOT" >&2; exit 1; }
 
-paths="$(find "$ROOT" -type f -name 'libnrf_cc310_bl*.a' 2>/dev/null | grep '/soft-float/' | sort -u || true)"
+mapfile -t paths < <(find "$ROOT" -type f -path '*/soft-float/*' -name 'libnrf_cc310_bl*.a' -print | sort -u)
 
-if [ -z "$paths" ]; then
-  echo "FATAL: no libnrf_cc310_bl*.a (soft-float) found under $ROOT" >&2
-  find "$ROOT" -type f -name 'libnrf_cc310_bl*.a' 2>/dev/null | sort -u || true
-  exit 1
-fi
+[[ ${#paths[@]} -gt 0 ]] || { echo "FATAL: no libnrf_cc310_bl*.a (soft-float) found under $ROOT" >&2; exit 1; }
 
-printf '%s\n' "$paths"
+printf '%s\n' "${paths[@]}"
 
 {
   echo 'cc310_bl_paths<<EOF'
-  printf '%s\n' "$paths"
+  printf '%s\n' "${paths[@]}"
   echo 'EOF'
 } >> "${GITHUB_OUTPUT:-/dev/null}"
