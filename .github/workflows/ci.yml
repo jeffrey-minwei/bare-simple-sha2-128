@@ -146,13 +146,21 @@ jobs:
           set -e
           head -n 300 sign_nrf5340dk.map
 
+      - name: Run in Renode (nrf5340dk)
+        run: make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" ci-run-nrf5340dk
+
+      - name: Make HEX from sign_nrf5340dk.elf
+        shell: bash
+        run: |
+          set -euo pipefail
+          arm-none-eabi-objcopy -O ihex sign_nrf5340dk.elf sign_nrf5340dk.hex
+          ls -l sign_nrf5340dk.elf sign_nrf5340dk.hex
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ github.sha }}
           path: |
             **/*.elf
+            **/*.hex
             **/*.map
-
-      - name: Run in Renode (nrf5340dk)
-        run: make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" ci-run-nrf5340dk
