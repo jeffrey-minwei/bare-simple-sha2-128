@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 # .github/workflows/find_cc31x_files.sh
 set -Eeuo pipefail
 

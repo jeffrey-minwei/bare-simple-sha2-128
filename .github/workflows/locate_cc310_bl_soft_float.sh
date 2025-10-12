@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 # .github/workflows/locate_cc310_bl_soft_float.sh
 set -Eeuo pipefail
 
