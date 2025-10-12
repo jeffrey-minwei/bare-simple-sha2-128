@@ -107,49 +107,24 @@ jobs:
         run: test -d "${NRFXLIB_DIR}/crypto"
 
       - name: Locate nrf_cc310_bl static libs (soft-float only)
+        id: locate-cc310-bl
+        shell: bash
         run: |
-          set -euo pipefail
-          ROOT="${NRFXLIB_DIR:-${GITHUB_WORKSPACE}/third_party/nrfxlib}"
-          paths=$(find "${roots[@]}" -type f -name 'libnrf_cc310_bl*.a' 2>/dev/null | grep '/soft-float/' | sort -u)
-          if [ -z "$paths" ]; then
-            echo "FATAL: no libnrf_cc310_bl*.a (soft-float) found" >&2
-            find "${roots[@]}" -type f -name 'libnrf_cc310_bl*.a' 2>/dev/null | sort -u || true
-            exit 1
-          fi
-          printf '%s\n' "$paths"
-          {
-            echo 'cc310_bl_paths<<EOF'
-            printf '%s\n' "$paths"
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
+          set -Eeuo pipefail
+          chmod +x .github/workflows/locate_cc310_bl_soft_float.sh
+          .github/workflows/locate_cc310_bl_soft_float.sh
 
       - name: Find CC310/CC312 C/H files in nrfxlib
         shell: bash
         run: |
-          set -euo pipefail
-          ROOT="${NRFXLIB_DIR:-${GITHUB_WORKSPACE}/third_party/nrfxlib}"
-          test -d "$ROOT" || { echo "FATAL: nrfxlib not found at $ROOT"; exit 1; }
-      
-          # find file/path contains cc310/cc312 .c/.h files (case-insensitive)
-          mapfile -t HITS < <(
-            find "$ROOT" -type f \
-              \( -iname "*cc31[02]*.c" -o -iname "*cc31[02]*.h" \
-                 -o -ipath "*/cc31[02]/*.c" -o -ipath "*/cc31[02]/*.h" \) \
-              | sort
-          )
-      
-          if [ "${#HITS[@]}" -eq 0 ]; then
-            echo "FATAL: No CC310/CC312 .c/.h files under $ROOT"
-            exit 1
-          fi
-      
-          printf 'FOUND: %s\n' "${HITS[@]}"
+          set -Eeuo pipefail
+          chmod +x .github/workflows/find_cc31x_files.sh
+          .github/workflows/find_cc31x_files.sh
 
       - name: Build nrf52840
         run: |
           set -e
-          make clean
-          make TARGET=nrf52840 NRFXLIB_DIR="${NRFXLIB_DIR}"
+          make clean && make TARGET=nrf52840 NRFXLIB_DIR="${NRFXLIB_DIR}"
 
       - name: Show sign_nrf52840.map
         shell: bash
@@ -163,8 +138,7 @@ jobs:
       - name: Build nRF5340 DK
         run: |
           set -e
-          make clean
-          make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}"
+          make clean && make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}"
 
       - name: Show sign_nrf5340dk.map
         shell: bash
