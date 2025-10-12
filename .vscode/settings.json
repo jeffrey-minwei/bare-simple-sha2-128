@@ -1,0 +1,5 @@
+// .vscode/settings.json
+{
+  "files.eol": "\n",
+  "files.insertFinalNewline": true
+}
