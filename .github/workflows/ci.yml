@@ -172,5 +172,11 @@ jobs:
           set -e
           head -n 300 sign_nrf5340dk.map
 
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ github.sha }}
+          path: "**/*.{elf,map}"
+
       - name: Run in Renode (nrf5340dk)
         run: make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" ci-run-nrf5340dk
