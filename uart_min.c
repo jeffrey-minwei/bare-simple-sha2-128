@@ -19,10 +19,10 @@ void uarte0_init(void)
     P0_PIN_CNF(UART_TX_PIN) = (1u /*DIR=out*/);          // pull disabled 預設即可
     P0_PIN_CNF(UART_RX_PIN) = (0u /*DIR=in*/)|(3u<<2);   // pull-up
 
-    UARTE_PSEL_RTS = 0xFFFFFFFFu;
-    UARTE_PSEL_CTS = 0xFFFFFFFFu;
-    UARTE_PSEL_TXD = UART_TX_PIN;  // P0.x 直接填腳位號
-    UARTE_PSEL_RXD = UART_RX_PIN;
+    UARTE_PSEL_RTS = 0xFFFFFFFFu;  // 不用
+    UARTE_PSEL_CTS = 0xFFFFFFFFu;  // 不用
+    UARTE_PSEL_TXD = UART_TX_PIN;  // 22
+    UARTE_PSEL_RXD = UART_RX_PIN;  // 20
 
     UARTE_CONFIG   = 0; // parity off, hwfc off
     UARTE_BAUDRATE = UARTE_BAUDRATE_115200;
