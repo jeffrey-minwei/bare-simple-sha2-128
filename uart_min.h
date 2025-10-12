@@ -15,10 +15,16 @@
 #define UARTE_EVENTS_ENDTX    (*(volatile uint32_t*)(NRF_UARTE0_BASE + 0x120))
 
 #define UARTE_ENABLE          (*(volatile uint32_t*)(NRF_UARTE0_BASE + 0x500))
-#define UARTE_PSEL_RTS        (*(volatile uint32_t*)(NRF_UARTE0_BASE + 0x508))
-#define UARTE_PSEL_TXD        (*(volatile uint32_t*)(NRF_UARTE0_BASE + 0x50C))
-#define UARTE_PSEL_CTS        (*(volatile uint32_t*)(NRF_UARTE0_BASE + 0x510))
-#define UARTE_PSEL_RXD        (*(volatile uint32_t*)(NRF_UARTE0_BASE + 0x514))
+
+// 不用
+#define UARTE_PSEL_RTS  0xFFFFFFFFu
+// 不用
+#define UARTE_PSEL_CTS  0xFFFFFFFFu
+// 22
+#define UARTE_PSEL_TXD  UART_TX_PIN
+// 20
+#define UARTE_PSEL_RXD  UART_RX_PIN
+
 #define UARTE_BAUDRATE        (*(volatile uint32_t*)(NRF_UARTE0_BASE + 0x524))
 #define UARTE_CONFIG          (*(volatile uint32_t*)(NRF_UARTE0_BASE + 0x56C))
 
@@ -38,9 +44,8 @@
 /* Baud (115200) */
 #define UARTE_BAUDRATE_115200 0x01D7E000UL
 
-/* DK 預設 VCOM 腳位 (P0.06 TX, P0.08 RX) */
-#define UART_TX_PIN           6
-#define UART_RX_PIN           8
+#define UART_TX_PIN 22   // P0.22 → J2 VCOM RX
+#define UART_RX_PIN 20   // P0.20 ← J2 VCOM TX
 
 void uarte0_init(void);
 
