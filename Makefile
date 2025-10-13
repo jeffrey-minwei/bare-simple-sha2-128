@@ -155,7 +155,11 @@ GROUPED_LIBS := $(if $(strip $(LIBS)),-Wl,--start-group $(LIBS) -Wl,--end-group,
 
 sign.elf:  $(PLATFORM)/linker.ld $(OBJS) $(RNG_OBJS)
 	@echo "==> start building with $(CC), output should be $(ELF)"
-	$(CC) $(CFLAGS) main.c $(SRCS) -v $(LDFLAGS) -o $(ELF) $(GROUPED_LIBS)
+ifeq ($(filter nrf5340dk_hard nrf52840_hard,$(TARGET)),)
+	$(CC) $(CFLAGS) main.c $(SRCS) -v $(LDFLAGS) -o $(ELF)
+else
+  $(CC) $(CFLAGS) main.c $(SRCS) -v $(LDFLAGS) -o $(ELF) -Wl,--start-group $(LIBS) -Wl,--end-group
+endif
 	$(NM) $(ELF) | grep -E 'memcpy|__aeabi_memcpy'
 
 clean:
