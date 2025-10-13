@@ -40,8 +40,8 @@
 /* Baud (115200) */
 #define UARTE_BAUDRATE_115200 0x01D7E000UL
 
-#define UART_TX_PIN 22   // P0.22 → J2 VCOM RX
-#define UART_RX_PIN 20   // P0.20 ← J2 VCOM TX
+#define UART_TX_PIN 20   // P0.20 ← J2 VCOM TX
+#define UART_RX_PIN 22   // P0.22 → J2 VCOM RX
 
 void uarte0_init(void);
 
