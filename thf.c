@@ -54,7 +54,13 @@ void T(unsigned int len, const psa_key_id_t pk_seed_key_id, ADRS adrs, const uin
 
     // SHA-256(PK.seed ∥ toByte(0, 64 − 𝑛) ∥ ADRS𝑐 ∥ 𝑀ℓ)
     uint8_t out32[32];
-    sha256(buf, sizeof(buf), out32);
+    size_t olen = 0;
+    psa_status_t status = psa_hash_compute(PSA_ALG_SHA_256, 
+                                           buf, 
+                                           sizeof(buf), 
+                                           out32, 
+                                           sizeof(out32), 
+                                           &olen);
 
     // Trunc𝑛(SHA-256(PK.seed ∥ toByte(0, 64 − 𝑛) ∥ ADRS𝑐 ∥ 𝑀ℓ))
     memcpy(out, out32, 16);   // n is 16

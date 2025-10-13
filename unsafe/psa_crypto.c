@@ -7,9 +7,12 @@
 #include "../params.h"
 #include "../xmss_sign.h"
 #include "../sha256.h"
+
+#ifndef HARD
+// if not computed by hardware, use static storage duration
+
 #include "hmac_sha256.h"
 
-// 檔案作用域靜態儲存期（同檔可見）
 static uint8_t sk_seed[SPX_N] = {0};
 static uint8_t sk_prf[SPX_N] = {0};
 static uint8_t pk_seed[SPX_N] = {0};
@@ -50,30 +53,6 @@ psa_status_t psa_generate_random(uint8_t * output,
 {
     return randombytes((unsigned char*)output, (unsigned long long)output_size);
 }
-
-/**
- * See https://arm-software.github.io/psa-api/crypto/1.3/api/keys/management.html#c.psa_generate_key
- */
-psa_status_t psa_generate_key(const psa_key_attributes_t * attributes,
-                              psa_key_id_t * key)
-{
-    psa_generate_random(sk_seed, SPX_N);
-    psa_generate_random(sk_prf, SPX_N);
-    psa_generate_random(pk_seed, SPX_N);
-
-    ADRS adrs;
-    memset(adrs, 0, 32);
-
-    int d = 7;  // SLH-DSA-SHA2-128s, d is 7
-    set_layer_addr(adrs, d-1);
-
-    unsigned int h_prime = 9;
-    // PK.root ← xmss_node(SK.seed, 0, ℎ′, PK.seed, ADRS)
-    xmss_node(pk_root, sk_seed, 0, h_prime, pk_seed, adrs);
-
-    return PSA_SUCCESS;
-}
-
 psa_status_t psa_hash_compute(psa_algorithm_t alg,
                               const uint8_t * input,
                               size_t input_length,
@@ -98,6 +77,65 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
     hmac_sha256(sk_prf, sizeof(sk_prf),
                 input, input_length,
                 mac);
+
+    return PSA_SUCCESS;
+}
+#endif  // #ifndef HARD
+
+/**
+ * \param sk_prf_key_id [out]
+ * \param desired_key_id [in]
+ */
+psa_status_t create_sk_prf(psa_key_id_t *sk_prf_key_id, uint8_t desired_key_id) {
+    psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
+
+    psa_set_key_type(&attr, PSA_KEY_TYPE_HMAC);
+    psa_set_key_bits(&attr, (psa_key_bits_t)(8 * SPX_N));
+    psa_set_key_algorithm(&attr, PSA_ALG_HMAC(PSA_ALG_SHA_256));
+    psa_set_key_lifetime(&attr, PSA_KEY_LIFETIME_PERSISTENT);
+    psa_set_key_usage_flags(&attr, PSA_KEY_USAGE_SIGN_MESSAGE);
+    psa_set_key_id(&attr, desired_key_id);
+
+    return psa_generate_key(&attr, sk_prf_key_id);
+}
+
+/**
+ * See https://arm-software.github.io/psa-api/crypto/1.3/api/keys/management.html#c.psa_generate_key
+ */
+psa_status_t slh_dsa_generate_key(const psa_key_attributes_t * attributes,
+                                  psa_key_id_t *p_sk_seed_key_id, 
+                                  psa_key_id_t *p_sk_prf_key_id, 
+                                  psa_key_id_t *p_pk_key_id)
+{
+    *p_sk_seed_key_id = 1;
+    *p_sk_prf_key_id = 2;
+    *p_pk_key_id = 3;
+
+    psa_generate_random(sk_seed, SPX_N);
+
+#ifndef HARD
+    // if computed by software, use random instead of p_sk_prf_key_id
+    psa_generate_random(sk_prf, SPX_N);
+#else
+    // if computed by hardware, use p_sk_prf_key_id instead of psa_generate_random to sk_prf
+    status = create_sk_prf(p_sk_prf_key_id, 2);
+    if (status != PSA_SUCCESS) { 
+        uarte0_puts("psa_generate_key sk prf fail");
+        for(;;);  // 失敗停在這裡
+    }
+#endif
+
+    psa_generate_random(pk_seed, SPX_N);
+
+    ADRS adrs;
+    memset(adrs, 0, 32);
+
+    int d = 7;  // SLH-DSA-SHA2-128s, d is 7
+    set_layer_addr(adrs, d-1);
+
+    unsigned int h_prime = 9;
+    // PK.root ← xmss_node(SK.seed, 0, ℎ′, PK.seed, ADRS)
+    xmss_node(pk_root, sk_seed, 0, h_prime, pk_seed, adrs);
 
     return PSA_SUCCESS;
 }
@@ -147,7 +185,13 @@ void _prf(uint8_t out[SPX_N], const psa_key_id_t pk_seed_key_id, const psa_key_i
 
     // SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed)
     uint8_t out32[32];
-    sha256(combined, sizeof(combined), out32);
+    size_t olen = 0;
+    psa_status_t status = psa_hash_compute(PSA_ALG_SHA_256, 
+                                           combined, 
+                                           sizeof(combined), 
+                                           out32, 
+                                           sizeof(out32), 
+                                           &olen);
 
     // Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed))
     memcpy(out, out32, SPX_N);
@@ -176,7 +220,14 @@ void h_msg(uint8_t out[SPX_M], // 𝑚 is 30 for SLH-DSA-SHA2-128s
 
     // SHA-256(𝑅 ∥ PK.seed ∥ PK.root ∥ 𝑀 )
     uint8_t hM[32];
-    sha256(in_sha256, sizeof(in_sha256), hM);
+
+    size_t olen = 0;
+    psa_status_t status = psa_hash_compute(PSA_ALG_SHA_256, 
+                                           in_sha256, 
+                                           sizeof(in_sha256), 
+                                           hM, 
+                                           sizeof(hM), 
+                                           &olen);
 
     // 𝑚 is 30 for SLH-DSA-SHA2-128s
     // MGF1-SHA-256(𝑅 ∥ PK.seed ∥ SHA-256(...), 𝑚)

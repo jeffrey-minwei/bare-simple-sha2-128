@@ -17,6 +17,8 @@
  *  -4  m > 32 (unsupported in this single-block variant)
  */
 
+#ifndef HARD
+
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -52,10 +54,19 @@ int mgf1_sha256_len30(uint8_t out[SPX_M],
     in[mask_len + 2] = 0x00u;
     in[mask_len + 3] = 0x00u;
 
-    sha256(in, mask_len + 4u, digest);
+    size_t olen = 0;
+    psa_status_t status = psa_hash_compute(PSA_ALG_SHA_256, 
+                                           in, 
+                                           sizeof(in), 
+                                           digest, 
+                                           sizeof(digest), 
+                                           &olen);
+
     memcpy(out, digest, (size_t)m);
 
     secure_zero(in, mask_len + 4u);
     secure_zero(digest, sizeof(digest));
     return 0;
 }
+
+#endif

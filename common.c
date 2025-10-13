@@ -173,7 +173,13 @@ void prf(const uint8_t pk_seed[SPX_N], const uint8_t sk_seed[SPX_N], const ADRS 
 
     // SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed)
     uint8_t out32[32];
-    sha256(combined, sizeof(combined), out32);
+    size_t olen = 0;
+    psa_status_t status = psa_hash_compute(PSA_ALG_SHA_256, 
+                                           combined, 
+                                           sizeof(combined), 
+                                           out32, 
+                                           sizeof(out32), 
+                                           &olen);
 
     // Trunc_n(SHA-256(PK.seed ∥ toByte(0, 64 − n) ∥ ADRS_c ∥ SK.seed))
     memcpy(out, out32, SPX_N);

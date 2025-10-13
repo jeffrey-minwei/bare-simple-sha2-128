@@ -19,11 +19,10 @@ endif
 endif
 
 OBJS := addr_compressed.o thf.o common.o addr.o \
-        base_2b.o sha256.o \
+        base_2b.o \
         slh_dsa_sign.o fors_sign.o 
 
-OBJS += xmss_sign.o wots_plus.o \
-        mgf1_sha256_len30.o psa_crypto.o hmac_sha256.o
+OBJS += xmss_sign.o wots_plus.o
 
 CC := arm-none-eabi-gcc
 
@@ -35,9 +34,11 @@ ifeq ($(TARGET),nrf52840)
             #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include 
   LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf52840.map \
              -specs=nano.specs -nostartfiles
+  OBJS += sha256.o
   ELF := sign_nrf52840.elf
   # NRF_CC_BACKEND := nrf_cc310_mbedcrypto
   ARCH_DIR   := cortex-m4
+  FLOAT_DIR  := soft-float
   RESC := run_sign.resc
 
 else ifeq ($(TARGET),nrf5340dk)
@@ -47,20 +48,43 @@ else ifeq ($(TARGET),nrf5340dk)
             -ffreestanding -Wall -Wextra 
   LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf5340dk.map \
              -specs=nano.specs -nostartfiles
+  OBJS += sha256.o
   ARCH_DIR   := cortex-m33+nodsp
+  FLOAT_DIR  := soft-float
   ELF := sign_nrf5340dk.elf
   # NRF_CC_BACKEND := nrf_cc312_mbedcrypto
   RESC := ./ci/renode/run_sign_nrf5340dk.resc
 
+else ifeq ($(TARGET),nrf5340dk_hard)
+  PLATFORM := platforms/nrf5340dk
+  STARTUP := $(PLATFORM)/startup.c
+  CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=hard -mfpu=fpv5-sp-d16 \
+            -O2 -ffreestanding -fdata-sections -ffunction-sections -Wall -Wextra
+  LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf5340dk_hard.map \
+             -specs=nano.specs -nostartfiles
+  ARCH_DIR   := cortex-m33
+  FLOAT_DIR  := hard-float
+  ELF := sign_nrf5340dk_hard.elf
+  NRF_CC_BACKEND := nrf_cc312_mbedcrypto
+  # CC312/Platform（PSA）路徑
+  NRFX := third_party/nrfxlib/crypto
+  VER  := 0.9.19
+  LIBDIR_CC312 := $(NRFX)/nrf_cc312_mbedcrypto/lib/cortex-m33/hard-float/no-interrupts
+  LIBDIR_PLAT  := $(NRFX)/nrf_cc3xx_platform/lib/cortex-m33/hard-float/no-interrupts
+
+  LIBS := \
+    $(LIBDIR_CC312)/libnrf_cc312_psa_crypto_$(VER).a \
+    $(LIBDIR_CC312)/libnrf_cc312_core_$(VER).a \
+    $(LIBDIR_PLAT)/libnrf_cc3xx_platform_$(VER).a
+
 endif
 
-FLOAT_DIR  := soft-float
+ifeq ($(TARGET),nrf5340dk_hard)
 
-#SHA256 := $(PLATFORM)/sha256.c
-# compute SHA-256 without hardware acceleration (temporary)
-SHA256 := platforms/sha256.c
-#vpath sha256.c $(PLATFORM) 
-vpath sha256.c platforms
+else
+  SHA256 := platforms/sha256.c
+  vpath sha256.c platforms
+endif
 
 RNG_SRC := kat/rng.c kat/aes256.c
 
@@ -71,16 +95,29 @@ LDFLAGS += -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__ae
 NM ?= $(shell $(CC) -print-prog-name=nm)
 
 ifneq ($(NRF_CC_BACKEND),)
-CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
+  CFLAGS += -I$(NRFXLIB_DIR)/crypto/$(NRF_CC_BACKEND)/include
 endif
 
 SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c \
-        $(SHA256) unsafe/hmac_sha256.c \
-        unsafe/mgf1_sha256_len30.c \
+        $(SHA256)  \
         uart_min.c slh_dsa_sign.c \
         base_2b.c addr_compressed.c addr.c \
         xmss_sign.c wots_plus.c \
         common.c thf.c fors_sign.c
+
+ifeq ($(filter nrf5340dk_hard nrf52840_hard,$(TARGET)),)
+  SRCS += unsafe/hmac_sha256.c unsafe/mgf1_sha256_len30.c
+  OBJS += mgf1_sha256_len30.o psa_crypto.o hmac_sha256.o
+  SHA256 := $(PLATFORM)/sha256.c
+  vpath sha256.c $(PLATFORM) 
+
+else
+  SRCS += $(PLATFORM)/crypto_hw.c
+  OBJS += crypto_hw.o
+
+crypto_hw.o: $(PLATFORM)/crypto_hw.c
+	$(CC) $(CFLAGS) -c $^ -o $@
+endif
 
 RENODE_IMG = renode_pinned:cached
 
@@ -114,9 +151,11 @@ endif
 
 all: sign.elf
 
+GROUPED_LIBS := $(if $(strip $(LIBS)),-Wl,--start-group $(LIBS) -Wl,--end-group,)
+
 sign.elf:  $(PLATFORM)/linker.ld $(OBJS) $(RNG_OBJS)
 	@echo "==> start building with $(CC), output should be $(ELF)"
-	$(CC) $(CFLAGS) main.c $(SRCS) -v $(LDFLAGS) -o $(ELF)
+	$(CC) $(CFLAGS) main.c $(SRCS) -v $(LDFLAGS) -o $(ELF) $(GROUPED_LIBS)
 	$(NM) $(ELF) | grep -E 'memcpy|__aeabi_memcpy'
 
 clean:

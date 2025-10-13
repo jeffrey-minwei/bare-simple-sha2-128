@@ -17,7 +17,6 @@ void test_psa_hash_compute()
 {
     const char abc[] = "abc";
     uint8_t out32[32];
-    sha256(abc, sizeof(abc) - 1, out32);
     size_t olen = 0;
     psa_status_t status = psa_hash_compute(PSA_ALG_SHA_256, 
                                            abc, 
@@ -62,19 +61,6 @@ void test_uart()
     uarte0_tx(msg, sizeof(msg) - 1);
 }
 
-psa_status_t create_sk_prf(psa_key_id_t desired_id, psa_key_id_t *sk_prf_key_id) {
-    psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
-
-    psa_set_key_type(&attr, PSA_KEY_TYPE_HMAC);
-    psa_set_key_bits(&attr, (psa_key_bits_t)(8 * SPX_N));
-    psa_set_key_algorithm(&attr, PSA_ALG_HMAC(PSA_ALG_SHA_256));
-    psa_set_key_lifetime(&attr, PSA_KEY_LIFETIME_PERSISTENT);
-    psa_set_key_usage_flags(&attr, PSA_KEY_USAGE_SIGN_MESSAGE);
-    psa_set_key_id(&attr, desired_id);
-
-    return psa_generate_key(&attr, sk_prf_key_id);
-}
-
 void generate_key(psa_key_id_t *p_sk_seed_key_id, 
                   psa_key_id_t *p_sk_prf_key_id, 
                   psa_key_id_t *p_pk_key_id)
@@ -83,23 +69,9 @@ void generate_key(psa_key_id_t *p_sk_seed_key_id,
     psa_set_key_lifetime(&attributes, PSA_KEY_LIFETIME_PERSISTENT);
     psa_set_key_bits(&attributes, (psa_key_bits_t)(8 * SPX_N));
 
-    psa_set_key_id(&attributes, 1);
-    psa_status_t status = psa_generate_key(&attributes, p_sk_seed_key_id);
+    psa_status_t status = slh_dsa_generate_key(&attributes, p_sk_seed_key_id, p_sk_prf_key_id, p_pk_key_id);
     if (status != PSA_SUCCESS) { 
         uarte0_puts("psa_generate_key sk seed fail");
-        for(;;);  // 失敗停在這裡
-    }
-
-    status = create_sk_prf(2, p_sk_prf_key_id);
-    if (status != PSA_SUCCESS) { 
-        uarte0_puts("psa_generate_key sk prf fail");
-        for(;;);  // 失敗停在這裡
-    }
-
-    psa_set_key_id(&attributes, 3);
-    status = psa_generate_key(&attributes, p_pk_key_id);
-    if (status != PSA_SUCCESS) { 
-        uarte0_puts("psa_generate_key public key fail");
         for(;;);  // 失敗停在這裡
     }
 

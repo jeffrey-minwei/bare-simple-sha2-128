@@ -138,7 +138,12 @@ jobs:
       - name: Build nRF5340 DK
         run: |
           set -e
-          make clean && make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}"
+          make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}"
+
+      - name: Build nRF5340 DK (hard)
+        run: |
+          set -e
+          make TARGET=nrf5340dk_hard NRFXLIB_DIR="${NRFXLIB_DIR}"
 
       - name: Show sign_nrf5340dk.map
         shell: bash

@@ -40,6 +40,17 @@ void compress_adrs(uint8_t c[22], const ADRS adrs);
 #define WOTS_PRF   5
 #define FORS_PRF   6
 
+#ifdef HARD
+
+void crypto_hw_init(void);
+
+#endif
+
+psa_status_t slh_dsa_generate_key(const psa_key_attributes_t * attributes,
+                                  psa_key_id_t *p_sk_seed_key_id, 
+                                  psa_key_id_t *p_sk_prf_key_id, 
+                                  psa_key_id_t *p_pk_key_id);
+
 unsigned long long toInt(const unsigned char *pX, unsigned int n);
 
 void toByte(const unsigned long long x, const unsigned int n, unsigned char *pS);
