@@ -87,6 +87,12 @@ psa_status_t psa_mac_compute(psa_key_id_t key,
  * \param desired_key_id [in]
  */
 psa_status_t create_sk_prf(psa_key_id_t *sk_prf_key_id, uint8_t desired_key_id) {
+    #ifndef HARD
+        // if computed by software, use random and ignore p_sk_prf_key_id
+        psa_generate_random(sk_prf, SPX_N);
+        return PSA_SUCCESS;        
+    #endif
+
     psa_key_attributes_t attr = PSA_KEY_ATTRIBUTES_INIT;
 
     psa_set_key_type(&attr, PSA_KEY_TYPE_HMAC);
@@ -95,12 +101,8 @@ psa_status_t create_sk_prf(psa_key_id_t *sk_prf_key_id, uint8_t desired_key_id) 
     psa_set_key_lifetime(&attr, PSA_KEY_LIFETIME_PERSISTENT);
     psa_set_key_usage_flags(&attr, PSA_KEY_USAGE_SIGN_MESSAGE);
     psa_set_key_id(&attr, desired_key_id);
-#ifdef HARD
+
     return psa_generate_key(&attr, sk_prf_key_id);
-#else
-    // if computed by software, create_sk_prf will not be called
-    return PSA_SUCCESS;
-#endif
 }
 
 /**
@@ -117,17 +119,11 @@ psa_status_t slh_dsa_generate_key(const psa_key_attributes_t * attributes,
 
     psa_generate_random(sk_seed, SPX_N);
 
-#ifndef HARD
-    // if computed by software, use random instead of p_sk_prf_key_id
-    psa_generate_random(sk_prf, SPX_N);
-#else
-    // if computed by hardware, use p_sk_prf_key_id instead of psa_generate_random to sk_prf
     status = create_sk_prf(p_sk_prf_key_id, 2);
     if (status != PSA_SUCCESS) { 
         uarte0_puts("psa_generate_key sk prf fail");
         for(;;);  // 失敗停在這裡
     }
-#endif
 
     psa_generate_random(pk_seed, SPX_N);
 

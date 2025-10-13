@@ -158,7 +158,7 @@ sign.elf:  $(PLATFORM)/linker.ld $(OBJS) $(RNG_OBJS)
 ifeq ($(filter nrf5340dk_hard nrf52840_hard,$(TARGET)),)
 	$(CC) $(CFLAGS) main.c $(SRCS) -v $(LDFLAGS) -o $(ELF)
 else
-  $(CC) $(CFLAGS) main.c $(SRCS) -v $(LDFLAGS) -o $(ELF) -Wl,--start-group $(LIBS) -Wl,--end-group
+	$(CC) $(CFLAGS) main.c $(SRCS) -v $(LDFLAGS) -o $(ELF) -Wl,--start-group $(LIBS) -Wl,--end-group
 endif
 	$(NM) $(ELF) | grep -E 'memcpy|__aeabi_memcpy'
 
