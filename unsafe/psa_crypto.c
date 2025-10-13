@@ -119,7 +119,7 @@ psa_status_t slh_dsa_generate_key(const psa_key_attributes_t * attributes,
 
     psa_generate_random(sk_seed, SPX_N);
 
-    status = create_sk_prf(p_sk_prf_key_id, 2);
+    psa_status_t status = create_sk_prf(p_sk_prf_key_id, 2);
     if (status != PSA_SUCCESS) { 
         uarte0_puts("psa_generate_key sk prf fail");
         for(;;);  // 失敗停在這裡
