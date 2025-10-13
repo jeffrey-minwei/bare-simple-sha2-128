@@ -95,8 +95,12 @@ psa_status_t create_sk_prf(psa_key_id_t *sk_prf_key_id, uint8_t desired_key_id) 
     psa_set_key_lifetime(&attr, PSA_KEY_LIFETIME_PERSISTENT);
     psa_set_key_usage_flags(&attr, PSA_KEY_USAGE_SIGN_MESSAGE);
     psa_set_key_id(&attr, desired_key_id);
-
+#ifdef HARD
     return psa_generate_key(&attr, sk_prf_key_id);
+#else
+    // if computed by software, create_sk_prf will not be called
+    return PSA_SUCCESS;
+#endif
 }
 
 /**
