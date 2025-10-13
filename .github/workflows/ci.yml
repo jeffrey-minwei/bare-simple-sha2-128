@@ -154,12 +154,12 @@ jobs:
       - name: Run in Renode (nrf5340dk)
         run: make TARGET=nrf5340dk NRFXLIB_DIR="${NRFXLIB_DIR}" ci-run-nrf5340dk
 
-      - name: Make HEX from sign_nrf5340dk.elf
+      - name: Make HEX from sign_nrf5340dk_hard.elf
         shell: bash
         run: |
           set -euo pipefail
-          arm-none-eabi-objcopy -O ihex sign_nrf5340dk.elf sign_nrf5340dk.hex
-          ls -l sign_nrf5340dk.elf sign_nrf5340dk.hex
+          arm-none-eabi-objcopy -O ihex sign_nrf5340dk_hard.elf sign_nrf5340dk_hard.hex
+          ls -l sign_nrf5340dk_hard.elf sign_nrf5340dk_hard.hex
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
