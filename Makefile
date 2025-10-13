@@ -68,7 +68,7 @@ else ifeq ($(TARGET),nrf5340dk_hard)
   NRF_CC_BACKEND := nrf_cc312_mbedcrypto
   # CC312/Platform（PSA）路徑
   NRFX := third_party/nrfxlib/crypto
-  VER  := 0.9.19
+  VER  := 0.9.12
   LIBDIR_CC312 := $(NRFX)/nrf_cc312_mbedcrypto/lib/cortex-m33/hard-float/no-interrupts
   LIBDIR_PLAT  := $(NRFX)/nrf_cc3xx_platform/lib/cortex-m33/hard-float/no-interrupts
 
