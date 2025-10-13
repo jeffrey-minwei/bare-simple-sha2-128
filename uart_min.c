@@ -15,20 +15,26 @@ void uarte0_init(void)
 {
     RETURN_IF_X86;
 
-    // TX=輸出、無拉；RX=輸入、上拉
-    P0_PIN_CNF(UART_TX_PIN) = (1u /*DIR=out*/);          // pull disabled 預設即可
-    P0_PIN_CNF(UART_RX_PIN) = (0u /*DIR=in*/)|(3u<<2);   // pull-up
+    /* 先關閉再配置 */
+    UARTE_ENABLE = UARTE_ENABLE_Disabled;
 
-    UARTE_PSEL_RTS = 0xFFFFFFFFu;  // 不用
-    UARTE_PSEL_CTS = 0xFFFFFFFFu;  // 不用
-    UARTE_PSEL_TXD = UART_TX_PIN;  // 22
-    UARTE_PSEL_RXD = UART_RX_PIN;  // 20
+    /* GPIO：TX=輸出且斷開輸入；RX=輸入且上拉 */
+    P0_PIN_CNF(UART_TX_PIN) = (1u /*DIR=out*/) | (1u<<1 /*INPUT=disconnect*/) | (0u<<2 /*PULL=disabled*/);
+    P0_PIN_CNF(UART_RX_PIN) = (0u /*DIR=in*/)  | (0u<<1 /*INPUT=connect*/)    | (3u<<2 /*PULL=pull-up*/);
 
-    UARTE_CONFIG   = 0; // parity off, hwfc off
+    /* 針腳對 J2 VCOM0：TX=P0.20、RX=P0.22；關閉硬體流控 */
+    UARTE_PSEL_RTS = 0xFFFFFFFFu;
+    UARTE_PSEL_CTS = 0xFFFFFFFFu;
+    UARTE_PSEL_TXD = 20u;  /* P0.20 */
+    UARTE_PSEL_RXD = 22u;  /* P0.22 */
+
+    /* 8N1、115200 */
+    UARTE_CONFIG   = 0u;
     UARTE_BAUDRATE = UARTE_BAUDRATE_115200;
-    UARTE_ENABLE   = UARTE_ENABLE_Enabled;
 
-    UARTE_EVENTS_ENDTX = 0;
+    /* 清事件並啟用 */
+    UARTE_EVENTS_ENDTX = 0u;
+    UARTE_ENABLE       = UARTE_ENABLE_Enabled;
 }
 
 void uarte0_hex_byte(uint8_t b) 
