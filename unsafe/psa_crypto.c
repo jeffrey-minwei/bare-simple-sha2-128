@@ -4,7 +4,7 @@
 #include "psa/crypto.h"
 #include "../kat/rng.h"
 #include "../kat/api.h"
-#include "../params.h"
+#include "params.h"
 #include "xmss_sign.h"
 #include "sha256.h"
 

@@ -91,7 +91,7 @@ endif
 
 RNG_SRC := kat/rng.c kat/aes256.c
 
-CFLAGS += -Ithird_party/mbedtls/include -Iinclude
+CFLAGS += -I. -Ithird_party/mbedtls/include -Iinclude
 
 LDFLAGS += -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
 

@@ -23,7 +23,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#include "../common.h"
+#include "common.h"
 #include "sha256.h"
 
 #ifndef MGF1_MAX_SEED
