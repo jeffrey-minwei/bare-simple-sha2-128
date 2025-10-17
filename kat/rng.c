@@ -10,7 +10,7 @@ You are solely responsible for determining the appropriateness of using and dist
 
 #include "rng.h"
 
-#ifdef X86
+#if defined(__x86_64__) || defined(__i386__)
 
 #include <openssl/conf.h>
 #include <openssl/evp.h>
@@ -108,7 +108,7 @@ seedexpander(AES_XOF_struct *ctx, unsigned char *x, unsigned long xlen)
     return RNG_SUCCESS;
 }
 
-#ifdef X86
+#if defined(__x86_64__) || defined(__i386__)
 
 void handleErrors(void)
 {

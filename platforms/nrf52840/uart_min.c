@@ -5,7 +5,7 @@
 #define P0_BASE       0x50000000u
 #define P0_PIN_CNF(n) (*(volatile uint32_t *)(P0_BASE + 0x700 + 4*(n)))
 
-#ifdef X86
+#if defined(__x86_64__) || defined(__i386__)
   #define RETURN_IF_X86 return
 #else
   #define RETURN_IF_X86 ((void)0)

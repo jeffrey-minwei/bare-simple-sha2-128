@@ -44,7 +44,7 @@ void set_layer_addr(ADRS adrs, unsigned int layer)
     {
         unsigned char S[4];
         toByte((unsigned long long)layer, 4, S);
-#ifdef X86
+#if defined(__x86_64__) || defined(__i386__)
 // do nothing
 #else
         uarte0_hex("set_layer_addr, S", S, sizeof(S) / sizeof(S[0]));

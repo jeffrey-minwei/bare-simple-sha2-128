@@ -12,7 +12,7 @@ void test_common()
     unsigned char S[4];
     unsigned int len = 1;
     toByte((unsigned long long)len, 4, S);
-#ifdef X86
+#if defined(__x86_64__) || defined(__i386__)
 // do nothing
 #else
     uarte0_hex("S", S, sizeof(S) / sizeof(S[0]));
@@ -29,7 +29,7 @@ static void test_rng()
     psa_generate_random(sk_seed, SPX_N);
     psa_generate_random(pk_seed, SPX_N);
     
-#ifdef X86
+#if defined(__x86_64__) || defined(__i386__)
 // do nothing
 #else
     uarte0_hex("pk_seed", pk_seed, SPX_N);
@@ -40,7 +40,7 @@ static void test_rng()
     // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f
     uint8_t buf[SPX_N];
     prf(pk_seed, sk_seed, adrs, buf);
-#ifdef X86
+#if defined(__x86_64__) || defined(__i386__)
 // do nothing
 #else
     uarte0_hex("prf store to buf", buf, SPX_N);

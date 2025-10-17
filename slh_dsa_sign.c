@@ -27,7 +27,7 @@ static void prf_msg(uint8_t R[SPX_N],
                                           hmac_sha256_out, sizeof(hmac_sha256_out),
                                           &mac_len);
     if (status != PSA_SUCCESS) { 
-#ifdef X86
+#if defined(__x86_64__) || defined(__i386__)
 // do nothing
 #else
         uarte0_puts("psa_mac_compute fail");

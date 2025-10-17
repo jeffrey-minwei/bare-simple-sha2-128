@@ -1,7 +1,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#ifndef X86
+#if defined(__x86_64__) || defined(__i386__)
+
+#else
 
 /* 常數表 */
 static const unsigned char S[256] = {
