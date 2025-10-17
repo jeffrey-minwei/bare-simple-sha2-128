@@ -44,7 +44,11 @@ void set_layer_addr(ADRS adrs, unsigned int layer)
     {
         unsigned char S[4];
         toByte((unsigned long long)layer, 4, S);
+#ifdef X86
+// do nothing
+#else
         uarte0_hex("set_layer_addr, S", S, sizeof(S) / sizeof(S[0]));
+#endif
 
         // See page 22, Figure 2. Address (ADRS), https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
         // ADRS[0:4] is layer address, ADRS[0,1,2,3]

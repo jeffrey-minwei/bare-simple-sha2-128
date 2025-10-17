@@ -118,8 +118,11 @@ size_t fors_sign(uint8_t out[SPX_FORS_SIG_LENGTH],
         memcpy(p, (uint8_t *)(auth[0][0]), SPX_A * SPX_N);
         p += SPX_A * SPX_N;
     }
-
+#ifdef X86
+// do nothing
+#else
     uarte0_puts("fors_sk_gen DONE\n");
+#endif
     return 0;
 }
 
