@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include "../common.h"
-#include "../sha256.h"
+#include "sha256.h"
 
 #ifndef MGF1_MAX_SEED
 #define MGF1_MAX_SEED 128u

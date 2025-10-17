@@ -5,8 +5,8 @@
 #ifndef HARD
 // only compile when computed by software
 
-#include "../sha256.h"
-#include "../uart_min.h"
+#include "sha256.h"
+#include "uart_min.h"
 
 /**
  * return 0 if all equals

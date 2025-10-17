@@ -5,8 +5,8 @@
 #include "../kat/rng.h"
 #include "../kat/api.h"
 #include "../params.h"
-#include "../xmss_sign.h"
-#include "../sha256.h"
+#include "xmss_sign.h"
+#include "sha256.h"
 
 #ifndef HARD
 // if not computed by hardware, use static storage duration

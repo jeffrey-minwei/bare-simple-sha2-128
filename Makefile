@@ -29,6 +29,7 @@ CC := arm-none-eabi-gcc
 ifeq ($(TARGET),nrf52840)
   PLATFORM := platforms/nrf52840
   STARTUP := $(PLATFORM)/startup.c
+  UART := $(PLATFORM)/uart_min.c
   CFLAGS := -mcpu=cortex-m4 -mthumb -mfloat-abi=soft -mfpu=fpv4-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra 
             #-I$(NRFXLIB_DIR)/crypto/nrf_cc310_mbedcrypto/include 
@@ -44,6 +45,7 @@ ifeq ($(TARGET),nrf52840)
 else ifeq ($(TARGET),nrf5340dk)
   PLATFORM := platforms/nrf5340dk
   STARTUP := $(PLATFORM)/startup.c
+  UART := $(PLATFORM)/uart_min.c
   CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=soft -mfpu=fpv5-sp-d16 -O2 \
             -ffreestanding -Wall -Wextra 
   LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf5340dk.map \
@@ -58,6 +60,7 @@ else ifeq ($(TARGET),nrf5340dk)
 else ifeq ($(TARGET),nrf5340dk_hard)
   PLATFORM := platforms/nrf5340dk
   STARTUP := $(PLATFORM)/startup.c
+  UART := $(PLATFORM)/uart_min.c
   CFLAGS := -mcpu=cortex-m33 -mthumb -mfloat-abi=hard -mfpu=fpv5-sp-d16 \
             -O2 -ffreestanding -fdata-sections -ffunction-sections -Wall -Wextra
   LDFLAGS := -T $(PLATFORM)/linker.ld -Wl,-Map,sign_nrf5340dk_hard.map \
@@ -88,7 +91,7 @@ endif
 
 RNG_SRC := kat/rng.c kat/aes256.c
 
-CFLAGS += -Ithird_party/mbedtls/include
+CFLAGS += -Ithird_party/mbedtls/include -Iinclude
 
 LDFLAGS += -Wl,--start-group -lc -lgcc -Wl,--end-group -Wl,-u,memcpy -Wl,-u,__aeabi_memcpy
 
@@ -100,7 +103,7 @@ endif
 
 SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c \
         $(SHA256)  \
-        uart_min.c slh_dsa_sign.c \
+        $(UART) slh_dsa_sign.c \
         base_2b.c addr_compressed.c addr.c \
         xmss_sign.c wots_plus.c \
         common.c thf.c fors_sign.c
@@ -206,7 +209,7 @@ KAT_BIN     := $(KAT_BUILD)/PQCgenKAT_sign
 
 kat:
 	@mkdir -p $(KAT_BUILD)
-	$(HOSTCC) $(HOSTCFLAGS) $(KAT_INCS) $(KAT_SRCS) -DX86 $(SRCS) -o $(KAT_BIN) $(HOSTLDFLAGS)
+	$(HOSTCC) $(HOSTCFLAGS) -Iinclude $(KAT_INCS) $(KAT_SRCS) -DX86 $(SRCS) -o $(KAT_BIN) $(HOSTLDFLAGS)
 	@echo "[KAT] running in $(KAT_BUILD)"
 	@cd $(KAT_BUILD) && ./PQCgenKAT_sign
 	@ls -l $(KAT_BUILD)/PQCsignKAT_*.req $(KAT_BUILD)/PQCsignKAT_*.rsp 2>/dev/null || true
