@@ -31,12 +31,6 @@ jobs:
           path: ${{ runner.tool_cache }}/arm-gnu-toolchain-${{ env.ARM_VER }}
           key: arm-gnu-${{ env.ARM_VER }}-linux-x64
 
-      - name: KAT
-        run: |
-          set -e
-          make clean
-          make TARGET=x86 kat
-
       - name: Setup ARM toolchain
         run: |
           TOOLDIR="$RUNNER_TOOL_CACHE/arm-gnu-toolchain-${ARM_VER}"
@@ -46,6 +40,12 @@ jobs:
             tar -C "$TOOLDIR" --strip-components=1 -xf /tmp/${ARM_TAR}
           fi
           echo "$TOOLDIR/bin" >> "$GITHUB_PATH"
+
+      - name: KAT
+        run: |
+          set -e
+          make clean
+          make TARGET=x86 kat
 
       # compute cache key（根據 ETag/Last-Modified； use date if fail）
       - name: Compute cache key (renode-latest.linux-portable.tar)

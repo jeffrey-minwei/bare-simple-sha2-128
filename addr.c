@@ -6,8 +6,6 @@
 
 void test_addr()
 {
-    unsigned char S[4];
-
     ADRS adrs;
 
     unsigned int layer_addr = 1;
@@ -28,8 +26,6 @@ void test_addr()
 
     unsigned int index = 3;
     set_tree_index(adrs, index);
-
-    // TODO unit test for each member function
 }
 
 /**
