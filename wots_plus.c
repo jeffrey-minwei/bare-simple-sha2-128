@@ -24,7 +24,8 @@ void test_wots_plus()
 
 /**
  * example:
- *     chain(out, sk_seed, i, s, pk_seed, adrs)
+ *     𝑠𝑘 ← PRF(PK.seed, SK.seed, skADRS) ▷ compute secret value for chain 𝑖
+ *     chain(out, 𝑠𝑘, i, s, pk_seed, adrs)
  */
 void _chain(uint8_t out[SPX_N],
            const uint8_t X[SPX_N], 
@@ -175,6 +176,6 @@ void wots_sign(N_BYTES out[SPX_LEN],
 
         // 𝑠𝑖𝑔[𝑖] ← chain(𝑠𝑘, 0, 𝑚𝑠𝑔[𝑖], PK.seed, ADRS) ▷ compute chain 𝑖 signature value
         // chain(uint8_t out[SPX_N], ...
-        _chain(out[i], sk_seed, 0, msg[i], pk_seed, adrs);
+        _chain(out[i], sk, 0, msg[i], pk_seed, adrs);
     }
 }
