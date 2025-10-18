@@ -30,6 +30,8 @@ void T(unsigned int len, const psa_key_id_t pk_seed_key_id, ADRS adrs, const uin
     unsigned int size = 64 + 22 + mlen;
     uint8_t buf[size];
 
+    uint8_t *p = buf;
+
     uint8_t * pk_seed = get_pk_seed();
 
     // PK.seed ∥ toByte(0, 64 − n)
@@ -37,20 +39,20 @@ void T(unsigned int len, const psa_key_id_t pk_seed_key_id, ADRS adrs, const uin
     // n is 16 for SLH-DSA-SHA2-128s and SLH-DSA-SHA2-128f   
 
     // buf <- PK.seed ∥ toByte(0, 64 − 𝑛) ∥ ADRS𝑐 ∥ 𝑀ℓ
-    memcpy(buf, pk_seed, SPX_N);
+    memcpy(p, pk_seed, SPX_N); p += SPX_N;
     // toByte(0, 64 − n)
     unsigned char S[48];   // n: 16, 64 - n = 48
     toByte(0, 48, S);
-    memcpy(buf + SPX_N, S, 48);
+    memcpy(p, S, 48); p += sizeof(S);
 
     // ADRSc is a 22 bytes array
     uint8_t adrs_c[22];
     compress_adrs(adrs_c, adrs);
     // ADRS𝑐
-    memcpy(buf + SPX_N + sizeof(S), adrs_c, sizeof(adrs_c));
+    memcpy(p, adrs_c, sizeof(adrs_c));  p += sizeof(adrs_c);
 
     // ADRS𝑐 ∥ 𝑀ℓ
-    memcpy(buf + SPX_N + sizeof(S) + sizeof(adrs_c), p_M, mlen);
+    memcpy(p, p_M, mlen);
 
     // SHA-256(PK.seed ∥ toByte(0, 64 − 𝑛) ∥ ADRS𝑐 ∥ 𝑀ℓ)
     uint8_t out32[32];

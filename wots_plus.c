@@ -101,7 +101,7 @@ void wots_pk_gen(uint8_t pk[SPX_N],
 
     // Page 18, https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
     // 13: pk ← T_len(PK.seed, wotspkADRS, tmp)     ▷ compress public key
-    T(SPX_LEN, pk_seed, wotspkADRS, tmp, pk);  // pk is a n length array
+    T(SPX_LEN, pk_seed, wotspkADRS, (const uint8_t *)tmp, pk);  // pk is a n length array
 }
 
 static size_t bytes_for_len2_lgw(size_t len2, size_t lgw) {
