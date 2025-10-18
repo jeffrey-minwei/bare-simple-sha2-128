@@ -56,6 +56,13 @@ jobs:
           path: ${{ runner.tool_cache }}/arm-gnu-toolchain-${{ env.ARM_VER }}
           key: arm-gnu-${{ env.ARM_VER }}-linux-x64
 
+      - name: Summary for cache ARM toolchain
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          chmod +x .github/workflows/write_job_summary.sh
+          .github/workflows/write_job_summary.sh
+
       - name: KAT
         run: |
           set -e
