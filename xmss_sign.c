@@ -77,7 +77,7 @@ void xmss_sign(N_BYTES out[SPX_XMSS_LEN],
         unsigned int k = (idx >> j) ^ 1u;
 
         // AUTH[𝑗] ← xmss_node(SK.seed, 𝑘, 𝑗, PK.seed, ADRS)
-        xmss_node(auth+j, sk_seed, k, j, pk_seed, adrs);
+        xmss_node(auth[j], sk_seed, k, j, pk_seed, adrs);
     }
 
     // 5: ADRS.setTypeAndClear(WOTS_HASH)
