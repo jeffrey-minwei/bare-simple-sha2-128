@@ -1,6 +1,8 @@
 // slh_dsa_sign.c
 
 #include "psa/crypto.h"
+#include "addr.h"
+#include "uart_min.h"
 #include "sha256.h"
 #include "slh_dsa_sign.h"
 #include "fors_sign.h"
