@@ -33,7 +33,7 @@ Output: Array of out_len integers in the range [0, … , 2b − 1].
 void base_2b(const unsigned char *pX, 
              const int b, 
              const int out_len, 
-             unsigned int *baseb)
+             uint8_t baseb[SPX_K])
 {
     if (baseb == NULL) return;
 
