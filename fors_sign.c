@@ -2,7 +2,6 @@
 #include "fors_sign.h"
 #include "thf.h"
 #include "uart_min.h"
-#include "base_2b.h"
 #include "sha256.h"
 
 #include <stdint.h>
