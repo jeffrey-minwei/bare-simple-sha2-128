@@ -1,7 +1,25 @@
 #ifndef ADDR_H
 #define ADDR_H
 
-#include "common.h"
+/**
+ *   See page 22 of https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
+ *
+ *   ADRS is 32 bytes, which is 8 個 uint32_t
+ *     -----------------
+ *     | layer address |   4 bytes
+ *     |---------------| 
+ *     |               |
+ *     | tree address  |  12 bytes
+ *     |               |
+ *     |---------------|
+ *     | type          |   4 bytes
+ *     |---------------|
+ *     |               |
+ *     |               |  12 byte
+ *     |               |
+ *     -----------------
+ */
+typedef unsigned char ADRS[32];   // ADRS  = 32 bytes
 
 void test_addr();
 

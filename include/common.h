@@ -10,25 +10,6 @@
 
 void test_common();
 
-/**
- *   See page 22 of https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.205.pdf
- *
- *   ADRS is 32 bytes, which is 8 個 uint32_t
- *     -----------------
- *     | layer address |   4 bytes
- *     |---------------| 
- *     |               |
- *     | tree address  |  12 bytes
- *     |               |
- *     |---------------|
- *     | type          |   4 bytes
- *     |---------------|
- *     |               |
- *     |               |  12 byte
- *     |               |
- *     -----------------
- */
-typedef unsigned char ADRS[32];   // ADRS  = 32 bytes
 typedef unsigned char N_BYTES[SPX_N];  // n bytes
 
 void compress_adrs(uint8_t c[22], const ADRS adrs);
