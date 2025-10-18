@@ -19,7 +19,6 @@ endif
 endif
 
 OBJS := addr_compressed.o thf.o common.o addr.o \
-        base_2b.o \
         slh_dsa_sign.o fors_sign.o 
 
 OBJS += xmss_sign.o wots_plus.o
@@ -104,7 +103,7 @@ endif
 SRCS := $(STARTUP) $(RNG_SRC) unsafe/psa_crypto.c \
         $(SHA256)  \
         $(UART) slh_dsa_sign.c \
-        base_2b.c addr_compressed.c addr.c \
+        addr_compressed.c addr.c \
         xmss_sign.c wots_plus.c \
         common.c thf.c fors_sign.c
 

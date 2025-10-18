@@ -28,6 +28,11 @@ void crypto_hw_init(void);
 
 #endif
 
+void base_2b(const unsigned char *pX, 
+             const int b, 
+             const int out_len, 
+             uint8_t baseb[SPX_K]);
+
 psa_status_t slh_dsa_generate_key(const psa_key_attributes_t * attributes,
                                   psa_key_id_t *p_sk_seed_key_id, 
                                   psa_key_id_t *p_sk_prf_key_id, 
