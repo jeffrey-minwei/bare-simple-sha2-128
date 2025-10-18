@@ -135,7 +135,7 @@ psa_status_t slh_dsa_generate_key(const psa_key_attributes_t * attributes,
 
     unsigned int h_prime = 9;
     // PK.root ← xmss_node(SK.seed, 0, ℎ′, PK.seed, ADRS)
-    xmss_node(pk_root, sk_seed, 0, h_prime, pk_seed, adrs);
+    xmss_node(pk_root, sk_seed, 0, h_prime, *p_pk_key_id, adrs);
 
     return PSA_SUCCESS;
 }
@@ -269,7 +269,9 @@ int crypto_sign_keypair(unsigned char *pk, unsigned char *sk)
 
     uint8_t pk_root[SPX_N] = {0};
     // PK.root ← xmss_node(SK.seed, 0, ℎ′, PK.seed, ADRS)
-    //xmss_node(pk_root, sk_seed, 0, h_prime, pk_seed, adrs);
+    psa_key_id_t sk_key_id = 1;
+    psa_key_id_t pk_key_id = 3;
+    xmss_node(pk_root, sk_key_id, 0, h_prime, pk_key_id, adrs);
 
     memcpy(sk + 3*SPX_N, pk_root, SPX_N);
     memcpy(pk + SPX_N, pk_root, SPX_N);
