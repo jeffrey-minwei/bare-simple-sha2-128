@@ -41,6 +41,13 @@ jobs:
           fi
           echo "$TOOLDIR/bin" >> "$GITHUB_PATH"
 
+      - name: Save ARM toolchain cache
+        if: steps.cache-arm.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.tool_cache }}/arm-gnu-toolchain-${{ env.ARM_VER }}
+          key: arm-gnu-${{ env.ARM_VER }}-linux-x64
+
       - name: KAT
         run: |
           set -e
