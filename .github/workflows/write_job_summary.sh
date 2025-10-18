@@ -9,6 +9,23 @@ BACKEND="${BACKEND:-}"
 
 hit_word() { [[ "$1" == "true" ]] && echo "HIT" || echo "MISS"; }
 
+# Config (override in ci.yml env: ELF_GLOBS, HEX_GLOBS)
+ELF_GLOBS="${ELF_GLOBS:-"*.elf **/*.elf"}"
+HEX_GLOBS="${HEX_GLOBS:-"*.hex **/*.hex"}"
+
+# Expand globs safely (supports **)
+shopt -s nullglob globstar
+
+# Collect files
+ELF_FILES=()
+for pat in $ELF_GLOBS; do
+  for f in $pat; do [[ -f "$f" ]] && ELF_FILES+=("$f"); done
+done
+HEX_FILES=()
+for pat in $HEX_GLOBS; do
+  for f in $pat; do [[ -f "$f" ]] && HEX_FILES+=("$f"); done
+done
+
 {
   echo "## Build summary"
   echo
@@ -26,11 +43,25 @@ hit_word() { [[ "$1" == "true" ]] && echo "HIT" || echo "MISS"; }
 
   [[ -n "$BACKEND" ]] && echo "- Backend: ${BACKEND}"
 
-  if [[ -f app.elf ]]; then
+  if ((${#ELF_FILES[@]})); then
     echo
-    echo "### Output size (app.elf)"
-    echo '```'
-    (arm-none-eabi-size -A app.elf 2>/dev/null || size -A app.elf || true)
-    echo '```'
+    echo "### ELF sizes"
+    for f in "${ELF_FILES[@]}"; do
+      echo "#### Output size ($f)"
+      echo '```'
+      (arm-none-eabi-size -A "$f" 2>/dev/null || size -A "$f" || true)
+      echo '```'
+    done
   fi
+
+  if ((${#HEX_FILES[@]})); then
+    echo
+    echo "### HEX artifacts"
+    for f in "${HEX_FILES[@]}"; do
+      # show file size; wc -c is portable enough
+      bytes=$(wc -c <"$f" | tr -d ' ')
+      echo "- $f (${bytes} bytes)"
+    done
+  fi
+
 } >> "${GITHUB_STEP_SUMMARY:-/dev/stdout}"
