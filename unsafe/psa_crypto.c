@@ -135,7 +135,7 @@ psa_status_t slh_dsa_generate_key(const psa_key_attributes_t * attributes,
 
     unsigned int h_prime = 9;
     // PK.root ← xmss_node(SK.seed, 0, ℎ′, PK.seed, ADRS)
-    xmss_node(pk_root, sk_seed, 0, h_prime, *p_pk_key_id, adrs);
+    xmss_node(pk_root, *p_sk_seed_key_id, 0, h_prime, *p_pk_key_id, adrs);
 
     return PSA_SUCCESS;
 }
