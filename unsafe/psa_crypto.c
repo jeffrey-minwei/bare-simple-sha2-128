@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "psa/crypto.h"
+#include "uart_min.h"
 #include "../kat/rng.h"
 #include "../kat/api.h"
 #include "params.h"
