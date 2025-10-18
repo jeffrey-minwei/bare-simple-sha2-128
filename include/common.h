@@ -3,6 +3,7 @@
 
 #include "params.h"
 #include "psa/crypto.h"
+#include "addr.h"
 
 #include <stdint.h>
 #include <string.h>
