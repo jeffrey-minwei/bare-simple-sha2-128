@@ -41,8 +41,16 @@ jobs:
           fi
           echo "$TOOLDIR/bin" >> "$GITHUB_PATH"
 
+      - name: Check cache after setup (lookup-only)
+        id: cache-arm-post
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.tool_cache }}/arm-gnu-toolchain-${{ env.ARM_VER }}
+          key: arm-gnu-${{ env.ARM_VER }}-linux-x64
+          lookup-only: true
+
       - name: Save ARM toolchain cache
-        if: steps.cache-arm.outputs.cache-hit != 'true'
+        if: steps.cache-arm.outputs.cache-hit != 'true' && steps.cache-arm-post.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.tool_cache }}/arm-gnu-toolchain-${{ env.ARM_VER }}
